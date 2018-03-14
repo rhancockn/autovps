@@ -50,7 +50,7 @@ class Transform(object):
         """Apply a scaling given by x,y,z
         """
         S = np.diag([x, y, z, 1])
-        self.concatenate_matrix(self.T, S)
+        self.concatenate_matrix(S)
 
 
     def scale(self, s):
@@ -82,7 +82,7 @@ class Transform(object):
     # overload operators, no copy
     def __mul__(self, T):
         T2 = Transform(self.get_matrix())
-        T2.concatenate_matrix(T.get_matrix)
+        T2.concatenate_matrix(T.get_matrix())
         return(T2)
 
     def __add__(self, T):
