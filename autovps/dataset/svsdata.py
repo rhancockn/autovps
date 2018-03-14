@@ -1,23 +1,23 @@
 import numpy as np
 
 class svsdata(object):
-"""Class for SVS spectroscopy data
+	"""Class for SVS spectroscopy data
 
-Attributes:
-	tr (float): TR (sec)
-	te (float): echo time (sec)
-	tm (float): mixing time (sec)
-	fid (:obj:`numpy.array`): complex repetition x acquisition x channel x time
-	spec (:obj:`numpy.array`): complex repetition x acquisition x channel x time
-	f (list): frequency axis in Hz
-	ppm (list): frequency axis in ppm
-	larmor (float): Larmor frequency in Hz
-	isis_dim (int): index of ISIS dimension or None
-	mega_dim (int): index of on/off dimension or None
-	sequence_name (str): name of the acquisition sequence
-	sequence_type (str): type of sequence: STEAM, PRESS, MEGAPRESS, SPECIAL, MEGASPECIAL, LASER, sLASER, UNKNOWN
+	Attributes:
+		tr (float): TR (sec)
+		te (float): echo time (sec)
+		tm (float): mixing time (sec)
+		fid (:obj:`numpy.array`): complex repetition x acquisition x channel x time
+		spec (:obj:`numpy.array`): complex repetition x acquisition x channel x time
+		f (list): frequency axis in Hz
+		ppm (list): frequency axis in ppm
+		larmor (float): Larmor frequency in Hz
+		isis_dim (int): index of ISIS dimension or None
+		mega_dim (int): index of on/off dimension or None
+		sequence_name (str): name of the acquisition sequence
+		sequence_type (str): type of sequence: STEAM, PRESS, MEGAPRESS, SPECIAL, MEGASPECIAL, LASER, sLASER, UNKNOWN
 
-"""
+	"""
 	def __init__(self):
 		self._tr = None
 		self._te = None
