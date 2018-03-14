@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Transform(object):
     """Transform matrix class
     """
@@ -7,7 +8,6 @@ class Transform(object):
 
     def __init__(self, T):
         self.T = np.matrix(T)
-
 
     def get_matrix(self):
         return(self.T)
@@ -17,10 +17,10 @@ class Transform(object):
         """
 
         theta = np.radians(theta)
-        R = np.matrix( [[1, 0, 0, 0],
-            [0, np.cos(theta), -np.sin(theta), 0],
-            [0, np.sin(theta), np.cos(theta), 0],
-            [0, 0, 0, 1]])
+        R = np.matrix([[1, 0, 0, 0],
+                [0, np.cos(theta), -np.sin(theta), 0],
+                [0, np.sin(theta), np.cos(theta), 0],
+                [0, 0, 0, 1]])
 
         self.concatenate_matrix(R)
 
@@ -28,10 +28,10 @@ class Transform(object):
         """ Apply a rotation of theta degrees around the y axis
         """
         theta = np.radians(theta)
-        R = np.matrix( [[np.cos(theta), 0, np.sin(theta), 0],
-            [0,1,0,0],
-            [-np.sin(theta), 0, np.cos(theta), 0],
-            [0, 0, 0, 1]] )
+        R = np.matrix([[np.cos(theta), 0, np.sin(theta), 0],
+                [0, 1, 0, 0],
+                [-np.sin(theta), 0, np.cos(theta), 0],
+                [0, 0, 0, 1]] )
 
         self.concatenate_matrix(R)
 
@@ -39,17 +39,17 @@ class Transform(object):
         """ Apply a rotation of theta degrees around the z axis
         """
         theta = np.radians(theta)
-        R = np.matrix( [[np.cos(theta), -np.sin(theta), 0, 0],
-            [np.sin(theta), np.cos(theta), 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]])
+        R = np.matrix([[np.cos(theta), -np.sin(theta), 0, 0],
+                [np.sin(theta), np.cos(theta), 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]])
 
         self.concatenate_matrix(R)
 
-    def scaleXYZ(self, x,y,z):
+    def scaleXYZ(self, x, y, z):
         """Apply a scaling given by x,y,z
         """
-        S = np.diag([x,y,z,1])
+        S = np.diag([x, y, z, 1])
         self.concatenate_matrix(self.T, S)
 
 
@@ -59,11 +59,11 @@ class Transform(object):
         self.scaleXYZ(s[0], s[1], s[2])
 
     def get_scale(self):
-        dims = [ np.sqrt(np.dot(self.T[:,i].T.tolist(),self.T[:,i].tolist())) for i in range(3) ]
+        dims = [np.sqrt(np.dot(self.T[:, i].T.tolist(), self.T[:, i].tolist())) for i in range(3) ]
         return(np.squeeze(dims))
 
     def get_position(self):
-        return(np.asarray(self.T[0:3,3]).squeeze())
+        return(np.asarray(self.T[0:3, 3]).squeeze())
 
     def concatenate_matrix(self, T):
         """Right multiply the current transform by T
@@ -77,7 +77,7 @@ class Transform(object):
 
 
     def translateXYZ(self, x, y, z):
-        self.T[0:3,3]=self.T[0:3,3]+np.matrix([[x,y,z]]).T
+        self.T[0:3, 3]=self.T[0:3, 3]+np.matrix([[x, y, z]]).T
 
     # overload operators, no copy
     def __mul__(self, T):
@@ -93,10 +93,6 @@ class Transform(object):
         T2 = self.get_matrix() - T.get_matrix()
         return(Transform(T2))
 
-    #from hcpre
-
- 
-
     def siemens_orientation(self):
 
         """Given a 3-item list (or other iterable) that represents a normal vector
@@ -109,6 +105,8 @@ class Transform(object):
         rounding errors in internal Siemens software, which calculates row and
         column vectors.
         """
+        # from hcpre
+
         # docstring paraphrases IDL comments
         TOLERANCE = 1.e-4
         orientations = ('Sag', 'Cor', 'Tra')
@@ -129,13 +127,10 @@ class Transform(object):
         #     direction on the one hand and secondary direction on the other
         #     hand ==> 2nd angulation: "secondary>third dir. = angle"
 
-
         # get principal, secondary and ternary directions
 
-        normal = np.squeeze(np.array(self.T[0:3,2]))
-
+        normal = np.squeeze(np.array(self.T[0:3, 2]))
         ternary,secondary,principal = np.argsort(np.abs(normal))
-
 
         # [IDL] calc. angle between projection into third plane (spawned by
         # principle & secondary directions) and principal direction:
@@ -170,7 +165,7 @@ class Transform(object):
                 final_angle = "%s>%s %.1f" % \
                         (orientations[principal], orientations[secondary],
                          (1 * angle_1)
-                        )
+                )
                 final_orientation = orientations[principal] + '-' + orientations[secondary]
         else:
             # [IDL] DOUBLE-OBLIQUE:
@@ -180,6 +175,5 @@ class Transform(object):
             final_orientation = "%s-%s-%s" % \
                     (orientations[principal], orientations[secondary],
                      orientations[ternary])
-
 
         return(final_angle)
