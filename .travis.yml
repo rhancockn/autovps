@@ -5,9 +5,24 @@ python:
   - "3.5"
   - "3.6"
 
-# command to install dependencies
+#coveralls support
+before_install:
+    - pip install pytest pytest-cov
+    - pip install coveralls
 install:
   - pip install .
   - pip install -r requirements.txt
-# command to run tests
-script: pytest
+
+#tests
+script:
+  - pytest
+
+
+after_success:
+  - coveralls
+
+#to run for selected versions:
+#after_success:
+#  - if [[ $ENV == python=3.4* ]]; then
+#      coveralls;
+#    fi
