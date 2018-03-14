@@ -4,6 +4,8 @@ import nibabel.nicom.dicomwrappers as dcmwrapper
 import numpy as np
 import struct
 
+import six #for 2/3 compatibility
+
 DIM_TOL = .1
 def test_orientations():
 	siemens_orientations = {'3':'Tra', '4':'Tra', '5':'Tra', '6':'Sag', '7':'Cor', 
@@ -13,7 +15,7 @@ def test_orientations():
 	'16': 'Tra>Cor 30.0 >Sag -15.0', '17': 'Tra>Sag 30.0 >Cor -15.0',
 	'18': 'Tra>Sag 30.0', '19':'Tra>Cor 30.0', 
 	'20': 'Tra>Cor 30.0 >Sag 15.0', '21': 'Tra>Sag 30.0 >Cor 15.0' }
-	for idx,ori in siemens_orientations.iteritems():
+	for idx,ori in six.iteritems(siemens_orientations):
 		data = siemens.Siemens('tests/data/siemens/%s' % idx)
 		data.calculate_transform()
 		
