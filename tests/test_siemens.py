@@ -1,10 +1,10 @@
-import pytest
-import autovps.dataset.siemens as siemens
-import nibabel.nicom.dicomwrappers as dcmwrapper
-import numpy as np
 import struct
-
+import numpy as np
 import six  # for 2/3 compatibility
+import nibabel.nicom.dicomwrappers as dcmwrapper
+from pytest import approx
+
+import autovps.dataset.siemens as siemens
 
 DIM_TOL = .1
 
@@ -13,14 +13,19 @@ def test_orientations():
     """ Test that the axis string is correctly recovered
     """
     siemens_orientations = {'3': 'Tra', '4': 'Tra', '5': 'Tra', '6': 'Sag',
-        '7': 'Cor', '8': 'Sag', '9': 'Cor', '10': 'Tra>Sag 30.0',
-        '11': 'Tra>Cor 30.0', '12': 'Tra>Cor 30.0 >Sag 15.0',
-        '13': 'Tra>Sag 30.0 >Cor 15.0','14': 'Tra>Sag -30.0', 
-        '15': 'Tra>Cor -30.0', '16': 'Tra>Cor 30.0 >Sag -15.0',
-        '17': 'Tra>Sag 30.0 >Cor -15.0', '18': 'Tra>Sag 30.0',
-        '19': 'Tra>Cor 30.0', '20': 'Tra>Cor 30.0 >Sag 15.0',
-        '21': 'Tra>Sag 30.0 >Cor 15.0'}
+                            '7': 'Cor', '8': 'Sag', '9': 'Cor', '10': 'Tra>Sag 30.0',
+                            '11': 'Tra>Cor 30.0', '12': 'Tra>Cor 30.0 >Sag 15.0',
+                            '13': 'Tra>Sag 30.0 >Cor 15.0', '14': 'Tra>Sag -30.0', 
+                            '15': 'Tra>Cor -30.0', '16': 'Tra>Cor 30.0 >Sag -15.0',
+                            '17': 'Tra>Sag 30.0 >Cor -15.0', '18': 'Tra>Sag 30.0',
+                            '19': 'Tra>Cor 30.0', '20': 'Tra>Cor 30.0 >Sag 15.0',
+                            '21': 'Tra>Sag 30.0 >Cor 15.0'}
     
+    siemens_inplane_orientations = {'3': 0.0, '4': 30.0, '5': -30.0, '6': 0.0,
+                                    '7': 0.0, '8': 30.0, '9': 30.0, '10': 0.0,
+                                    '11': 0.0, '12': 0.0, '13': 0.0, '14': 0.0,
+                                    '15': 0.0, '16': 0.0, '17': 0.0, '18': 20.0,
+                                    '19': 20.0, '20': 20.0, '21': 20.0}
     for idx, ori in six.iteritems(siemens_orientations):
         data = siemens.Siemens('tests/data/siemens/%s' % idx)
         data.calculate_transform()
@@ -34,6 +39,10 @@ def test_orientations():
             assert abs(size[i]-real_size[i]) < DIM_TOL
             assert abs(position[i]) < DIM_TOL
         
+        #in plane rotation
+        assert approx(np.degrees(data.meta['VoiInPlaneRotation'])) \
+            == siemens_inplane_orientations[idx]
+
 
 def test_read_single():
     """Test reading a single combined DICOM
@@ -68,4 +77,15 @@ def test_read_uncombined():
         for j in range(data.data.shape[1]):
             assert data.data[i, j, -1] != 0
 
+
+def test_read_unaveraged():
+    """Test reading a directory of dicoms
+    """
+    data = siemens.Siemens('tests/data/siemens/eja_svs_press_combined_noave')
+    data.read_data()
+
+    assert data.data.shape == (8, 1, 2048)
+    for i in range(data.data.shape[0]):
+        for j in range(data.data.shape[1]):
+            assert data.data[i, j, -1] != 0
 

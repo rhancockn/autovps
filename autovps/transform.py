@@ -12,15 +12,15 @@ class Transform(object):
     def get_matrix(self):
         return(self.T)
 
-    def rotx(self,theta):
+    def rotx(self, theta):
         """ Apply a rotation of theta degrees around the x axis
         """
 
         theta = np.radians(theta)
         R = np.matrix([[1, 0, 0, 0],
-                [0, np.cos(theta), -np.sin(theta), 0],
-                [0, np.sin(theta), np.cos(theta), 0],
-                [0, 0, 0, 1]])
+                        [0, np.cos(theta), -np.sin(theta), 0],
+                        [0, np.sin(theta), np.cos(theta), 0],
+                        [0, 0, 0, 1]])
 
         self.concatenate_matrix(R)
 
@@ -29,9 +29,9 @@ class Transform(object):
         """
         theta = np.radians(theta)
         R = np.matrix([[np.cos(theta), 0, np.sin(theta), 0],
-                [0, 1, 0, 0],
-                [-np.sin(theta), 0, np.cos(theta), 0],
-                [0, 0, 0, 1]] )
+                        [0, 1, 0, 0],
+                        [-np.sin(theta), 0, np.cos(theta), 0],
+                        [0, 0, 0, 1]] )
 
         self.concatenate_matrix(R)
 
@@ -40,9 +40,9 @@ class Transform(object):
         """
         theta = np.radians(theta)
         R = np.matrix([[np.cos(theta), -np.sin(theta), 0, 0],
-                [np.sin(theta), np.cos(theta), 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1]])
+                        [np.sin(theta), np.cos(theta), 0, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 1]])
 
         self.concatenate_matrix(R)
 
@@ -59,7 +59,7 @@ class Transform(object):
         self.scaleXYZ(s[0], s[1], s[2])
 
     def get_scale(self):
-        dims = [np.sqrt(np.dot(self.T[:, i].T.tolist(), self.T[:, i].tolist())) for i in range(3) ]
+        dims = [np.sqrt(np.dot(self.T[:, i].T.tolist(), self.T[:, i].tolist())) for i in range(3)]
         return(np.squeeze(dims))
 
     def get_position(self):
@@ -77,21 +77,13 @@ class Transform(object):
 
 
     def translateXYZ(self, x, y, z):
-        self.T[0:3, 3]=self.T[0:3, 3]+np.matrix([[x, y, z]]).T
+        self.T[0:3, 3] = self.T[0:3, 3]+np.matrix([[x, y, z]]).T
 
     # overload operators, no copy
     def __mul__(self, T):
         T2 = Transform(self.get_matrix())
         T2.concatenate_matrix(T.get_matrix())
         return(T2)
-
-    def __add__(self, T):
-        T2 = self.get_matrix() + T.get_matrix()
-        return(Transform(T2))
-
-    def __sub__(self, T):
-        T2 = self.get_matrix() - T.get_matrix()
-        return(Transform(T2))
 
     def siemens_orientation(self):
 
@@ -130,7 +122,7 @@ class Transform(object):
         # get principal, secondary and ternary directions
 
         normal = np.squeeze(np.array(self.T[0:3, 2]))
-        ternary,secondary,principal = np.argsort(np.abs(normal))
+        ternary, secondary, principal = np.argsort(np.abs(normal))
 
         # [IDL] calc. angle between projection into third plane (spawned by
         # principle & secondary directions) and principal direction:
@@ -165,7 +157,7 @@ class Transform(object):
                 final_angle = "%s>%s %.1f" % \
                         (orientations[principal], orientations[secondary],
                          (1 * angle_1)
-                )
+                        )
                 final_orientation = orientations[principal] + '-' + orientations[secondary]
         else:
             # [IDL] DOUBLE-OBLIQUE:
