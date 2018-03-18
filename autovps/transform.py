@@ -104,7 +104,6 @@ class Transform(object):
         orientations = ('Sag', 'Cor', 'Tra')
 
         final_angle = ""
-        final_orientation = ""
 
         # [IDL] evaluate orientation of normal vector:
         #
@@ -169,3 +168,4 @@ class Transform(object):
                      orientations[ternary])
 
         return(final_angle)
+
