@@ -5,6 +5,8 @@ import nibabel.nicom.dicomwrappers as dcmwrapper
 from pytest import approx
 
 import autovps.dataset.siemens as siemens
+from autovps.dataset import svsdata
+
 
 DIM_TOL = .1
 
@@ -49,13 +51,13 @@ def test_read_single():
     """
     test_file = 'tests/data/siemens/3/S8457LTU_2_3_00001_00001_173218510000__1263534865.dcm'
     data_file = siemens.Siemens(test_file)
-    data_file.read_data()
+    svs_file = data_file.get_svsdata()
 
     data_dir = siemens.Siemens('tests/data/siemens/3')
-    data_dir.read_data()
+    svs_dir = data_dir.get_svsdata()
 
     # is it the right size?
-    assert data_file.data.shape == data_dir.data.shape == (1, 1, 2048)
+    assert data_file.data.shape == data_dir.data.shape == (1, 1, 1, 1, 2048)
 
     dcm = dcmwrapper.wrapper_from_file(test_file)
     packed = dcm.get((0x7fe1, 0x1010)).value
@@ -66,26 +68,29 @@ def test_read_single():
     assert (data_file.data == data_dir.data).all()
 
 
+
 def test_read_uncombined():
     """Test reading a directory of dicoms
     """
     data = siemens.Siemens('tests/data/siemens/eja_svs_press_uncombined')
-    data.read_data()
+    data.get_svsdata()
 
-    assert data.data.shape == (32, 52, 2048)
+    assert data.data.shape == (52, 32, 1, 1, 2048)
     for i in range(data.data.shape[0]):
         for j in range(data.data.shape[1]):
-            assert data.data[i, j, -1] != 0
+            assert data.data[i, j, 0, 0, -1] != 0
+
 
 
 def test_read_unaveraged():
     """Test reading a directory of dicoms
     """
     data = siemens.Siemens('tests/data/siemens/eja_svs_press_combined_noave')
-    data.read_data()
+    data.get_svsdata()
 
-    assert data.data.shape == (8, 1, 2048)
+    assert data.data.shape == (1, 8, 1, 1, 2048)
     for i in range(data.data.shape[0]):
         for j in range(data.data.shape[1]):
-            assert data.data[i, j, -1] != 0
+            assert data.data[i, j, 0, 0, -1] != 0
+
 
