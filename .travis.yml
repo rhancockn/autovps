@@ -16,7 +16,7 @@ install:
 
 #tests
 script:
-  - pytest --cov=autovps tests
+  - pytest -v --cov=autovps tests
 
 
 after_success:
