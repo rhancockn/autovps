@@ -17,12 +17,12 @@ def test_orientations():
     siemens_orientations = {'3': 'Tra', '4': 'Tra', '5': 'Tra', '6': 'Sag',
                             '7': 'Cor', '8': 'Sag', '9': 'Cor', '10': 'Tra>Sag 30.0',
                             '11': 'Tra>Cor 30.0', '12': 'Tra>Cor 30.0 >Sag 15.0',
-                            '13': 'Tra>Sag 30.0 >Cor 15.0', '14': 'Tra>Sag -30.0', 
+                            '13': 'Tra>Sag 30.0 >Cor 15.0', '14': 'Tra>Sag -30.0',
                             '15': 'Tra>Cor -30.0', '16': 'Tra>Cor 30.0 >Sag -15.0',
                             '17': 'Tra>Sag 30.0 >Cor -15.0', '18': 'Tra>Sag 30.0',
                             '19': 'Tra>Cor 30.0', '20': 'Tra>Cor 30.0 >Sag 15.0',
                             '21': 'Tra>Sag 30.0 >Cor 15.0'}
-    
+
     siemens_inplane_orientations = {'3': 0.0, '4': 30.0, '5': -30.0, '6': 0.0,
                                     '7': 0.0, '8': 30.0, '9': 30.0, '10': 0.0,
                                     '11': 0.0, '12': 0.0, '13': 0.0, '14': 0.0,
@@ -31,16 +31,19 @@ def test_orientations():
     for idx, ori in six.iteritems(siemens_orientations):
         data = siemens.Siemens('tests/data/siemens/%s' % idx)
         data.calculate_transform()
-        
+        R = data.qform.get_rotation()
+
+        print('%s: %f' % (idx, np.degrees(np.arctan2(-R[2,1], -R[2,0]))))
+
         # orientation string is correct
-        assert ori == data.T.siemens_orientation()
-        size = data.T.get_scale()
+        assert ori == data.tform.siemens_orientation()
+        size = data.tform.get_scale()
         real_size = [20, 25, 30]
-        position = data.T.get_position()
+        position = data.tform.get_position()
         for i in range(3):
             assert abs(size[i]-real_size[i]) < DIM_TOL
             assert abs(position[i]) < DIM_TOL
-        
+
         #in plane rotation
         assert approx(np.degrees(data.meta['VoiInPlaneRotation'])) \
             == siemens_inplane_orientations[idx]
@@ -92,5 +95,3 @@ def test_read_unaveraged():
     for i in range(data.data.shape[0]):
         for j in range(data.data.shape[1]):
             assert data.data[i, j, 0, 0, -1] != 0
-
-
