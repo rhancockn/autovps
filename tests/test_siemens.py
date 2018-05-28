@@ -31,15 +31,13 @@ def test_orientations():
     for idx, ori in six.iteritems(siemens_orientations):
         data = siemens.Siemens('tests/data/siemens/%s' % idx)
         data.calculate_transform()
-        R = data.qform.get_rotation()
-
-        print('%s: %f' % (idx, np.degrees(np.arctan2(-R[2,1], -R[2,0]))))
-
+        calc_ori = data.qform.siemens_orientation()
         # orientation string is correct
-        assert ori == data.tform.siemens_orientation()
-        size = data.tform.get_scale()
+        assert ori == calc_ori[0]
+        assert abs(siemens_inplane_orientations[idx] - calc_ori[1]) < DIM_TOL
+        size = data.qform.get_scale()
         real_size = [20, 25, 30]
-        position = data.tform.get_position()
+        position = data.qform.get_position()
         for i in range(3):
             assert abs(size[i]-real_size[i]) < DIM_TOL
             assert abs(position[i]) < DIM_TOL

@@ -137,7 +137,6 @@ class Transform(object):
         # secondary direction:
         # projection on rotated principle dir.
         new_normal_ip = np.sqrt((normal[principal] ** 2) + (normal[secondary] ** 2))
-        print(new_normal_ip)
 
         angle_2 = np.degrees(np.arctan2(normal[ternary], new_normal_ip))
 
@@ -174,4 +173,14 @@ class Transform(object):
                     (orientations[principal], orientations[secondary],
                      orientations[ternary])
 
-        return(final_angle)
+        # inplane rotation
+        R = self.get_rotation()
+
+        if orientations[principal] == 'Tra':
+            ip_rotation = np.degrees(np.arctan2(-R[0, 1], R[0, 0]))
+        if orientations[principal] == 'Cor':
+            ip_rotation = np.degrees(np.arctan2(R[2, 1], -R[2, 0]))
+        if orientations[principal] == 'Sag':
+            ip_rotation = 90.0 - np.degrees(np.arctan2(-R[1, 1], -R[1, 0]))
+
+        return((final_angle, ip_rotation))
