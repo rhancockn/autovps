@@ -25,7 +25,7 @@ class Siemens(object):
     """
 
     csa = None
-    T = None
+    qform = None
     path = None
     meta = {}
     data = None
@@ -36,7 +36,7 @@ class Siemens(object):
 
 
         Args:
-            path (str): The path to a Siemens SVS DICOM file or directory of 
+            path (str): The path to a Siemens SVS DICOM file or directory of
                 DICOM files.
 
         """
@@ -129,7 +129,7 @@ class Siemens(object):
 
         # a string, if not leave the exception unhandled
         return(str(v))
-       
+
 
 
     def calculate_transform(self):
@@ -153,12 +153,12 @@ class Siemens(object):
         T_matrix[0:3, 3] = np.array(self.get_parameter('VoiPosition'))*flip
 
         self.T_matrix = T_matrix
-        self.T = Transform(T_matrix)
+        self.qform = Transform(T_matrix)
 
-        return(self.T)
+        return(self.qform)
 
     def read_data(self, conj=True):
-        """Read the associated fids. 
+        """Read the associated fids.
         If the instance was initialized with a directory, the directory is assumed
         to contain a single series in order.
 
@@ -184,8 +184,8 @@ class Siemens(object):
             files = sorted(files)
 
             # find the instance number of the last dicom to calculate data size
-            # this assumes different interleaved acquisitions have the same 
-            # (0020, 0012) Acquisition Number 
+            # this assumes different interleaved acquisitions have the same
+            # (0020, 0012) Acquisition Number
             # true for eja sequences
             lastdcmfile = os.path.join(self.path, files[-1])
             lastdcm = dcmwrapper.wrapper_from_file(lastdcmfile)
@@ -203,7 +203,7 @@ class Siemens(object):
 
             # is the data combined over channels?
             # mri_probedicom reports ucUncombImages, but where is this in the CSA?
-            
+
 
             # the first two instances of uncombined eja sequences are single channels
             # TODO: figure out what they are
@@ -221,7 +221,7 @@ class Siemens(object):
                     is_combined = True
 
                 else:
-                    raise Exception('Expected n_reps[%d] * (n_channels[%d] + 1 files' 
+                    raise Exception('Expected n_reps[%d] * (n_channels[%d] + 1 files'
                                     % (n_reps, n_channels))
 
             data = np.zeros((n_channels, n_reps, 1, 1, int(csareader.get_scalar(csa_image, 'DataPointColumns'))), dtype=complex)
@@ -250,8 +250,8 @@ class Siemens(object):
                         data[ci, ri, 0, 0, :] = fid
                 else:
                     data[0, ri, 0, 0, :] = fid
-        
-        # take the complex conjugate, which Tarquin seems to expect            
+
+        # take the complex conjugate, which Tarquin seems to expect
         if conj:
             data = np.conj(data)
 
@@ -268,12 +268,12 @@ class Siemens(object):
         if self.data is None:
             self.read_data()
 
-        if self.T is None:
+        if self.qform is None:
             self.calculate_transform()
 
         data = svsdata.SVSData()
         data.fid = self.data
-        data.transform = self.T
+        data.transform = self.qform
         data.sequence_name = self.get_parameter('SequenceName')
         data.tr = self.get_parameter('RepetitionTime')/1000.0
         data.te = self.get_parameter('EchoTime')/1000.0
@@ -310,10 +310,3 @@ def _read_fid(dcm):
     cmplx = [data[i]+data[i+1]*1j for i in range(0, len(data), 2)]
 
     return(cmplx)
-
-
-
-
-
-
-

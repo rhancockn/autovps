@@ -4,13 +4,13 @@ import numpy as np
 class Transform(object):
     """Transform matrix class
     """
-    T = np.matrix(np.eye(4))
+    tform = np.matrix(np.eye(4))
 
-    def __init__(self, T):
-        self.T = np.matrix(T)
+    def __init__(self, tform):
+        self.tform = np.matrix(tform)
 
     def get_matrix(self):
-        return(self.T)
+        return(self.tform)
 
     def rotx(self, theta):
         """ Apply a rotation of theta degrees around the x axis
@@ -58,32 +58,38 @@ class Transform(object):
         """
         self.scaleXYZ(s[0], s[1], s[2])
 
+
     def get_scale(self):
-        dims = [np.sqrt(np.dot(self.T[:, i].T.tolist(), self.T[:, i].tolist())) for i in range(3)]
+        dims = [np.sqrt(np.dot(self.tform[:, i].T.tolist(), self.tform[:, i].tolist())) for i in range(3)]
         return(np.squeeze(dims))
 
     def get_position(self):
-        return(np.asarray(self.T[0:3, 3]).squeeze())
+        return(np.asarray(self.tform[0:3, 3]).squeeze())
 
-    def concatenate_matrix(self, T):
-        """Right multiply the current transform by T
+    def concatenate_matrix(self, tform):
+        """Right multiply the current transform by tform
 
         Args:
-            T (:obj:`numpy.matrix`): a 4x4 transform to apply
+            tform (:obj:`numpy.matrix`): a 4x4 transform to apply
 
         """
 
-        self.T = np.dot(self.T, T)
+        self.tform = np.dot(self.tform, tform)
 
 
     def translateXYZ(self, x, y, z):
-        self.T[0:3, 3] = self.T[0:3, 3]+np.matrix([[x, y, z]]).T
+        self.tform[0:3, 3] = self.tform[0:3, 3]+np.matrix([[x, y, z]]).T
 
     # overload operators, no copy
-    def __mul__(self, T):
+    def __mul__(self, tform):
         T2 = Transform(self.get_matrix())
-        T2.concatenate_matrix(T.get_matrix())
+        T2.concatenate_matrix(tform.get_matrix())
         return(T2)
+
+    def get_rotation(self):
+        R = Transform(self.get_matrix())
+        R.scale(1.0/self.get_scale())
+        return(R.tform[0:3, 0:3])
 
     def siemens_orientation(self):
 
@@ -120,7 +126,7 @@ class Transform(object):
 
         # get principal, secondary and ternary directions
 
-        normal = np.squeeze(np.array(self.T[0:3, 2]))
+        normal = np.squeeze(np.array(self.tform[0:3, 2]))
         ternary, secondary, principal = np.argsort(np.abs(normal))
 
         # [IDL] calc. angle between projection into third plane (spawned by
@@ -131,6 +137,7 @@ class Transform(object):
         # secondary direction:
         # projection on rotated principle dir.
         new_normal_ip = np.sqrt((normal[principal] ** 2) + (normal[secondary] ** 2))
+        print(new_normal_ip)
 
         angle_2 = np.degrees(np.arctan2(normal[ternary], new_normal_ip))
 
@@ -168,4 +175,3 @@ class Transform(object):
                      orientations[ternary])
 
         return(final_angle)
-
