@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 #puts MNI voxel into T1 and Siemens space
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
+
 import numpy as np
 import os
 import nibabel as nib
@@ -11,9 +15,7 @@ from autovps.transform import Transform
 from autovps.dataset import siemens
 
 import argparse
-import warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=FutureWarning)
+
 
 parser = argparse.ArgumentParser(description="Generate ROI voxels from MRS affine and T1 files.")
 parser.add_argument('t1_nifti', help="Path to T1 nifti, converted from dicoms.")
@@ -102,13 +104,13 @@ vox_tform = Transform(composed_affine_mm)
 
 ori = vox_tform.siemens_orientation()
 pos = vox_tform.get_position()
-vox_size = [np.sqrt(np.dot(mrs_aff_vox[:, i].T.tolist(), mrs_aff_vox[:, i].tolist())) for i in range(3)]
+vox_size = [np.sqrt(np.dot(composed_affine_mm[:, i].T.tolist(), composed_affine_mm[:, i].tolist())) for i in range(3)]
 
 print('Orientation: %s' % ori[0])
 print('Rotation: %0.1f deg' %  float(ori[1]))
 print('Position: %0.0f %0.0f %0.0f mm' % (pos[0], pos[1], pos[2]))
 print('          %s' % position_string(pos))
-print('VOI: R>>L%0.0f A>>P%0.0f F>>H%0.0f mm' % (vox_size[0], vox_size[1], vox_size[2]))
+#print('VOI: R>>L%0.0f A>>P%0.0f F>>H%0.0f mm' % (vox_size[0], vox_size[1], vox_size[2]))
 
 # ### make a volume in T1 space
 mrs_corners = [[-0.5, -0.5, -0.5, 1], #0
