@@ -64,8 +64,8 @@ mrs_aff_vox = np.dot(np.linalg.pinv(mni_aff), mrs_aff_orig)
 # get scaling factor of native2mni transform and scale the voxel to preserve size
 native2mni_dims = [np.sqrt(np.dot(native2mni[:, i].T.tolist(), native2mni[:, i].tolist())) for i in range(3)]
 # scale MRS voxel
-S_native2mni = np.linalg.pinv(np.diag([native2mni_dims[0], native2mni_dims[1], native2mni_dims[2], 1]))
-mrs_aff_vox = np.dot(mrs_aff_vox, S_native2mni)
+#S_native2mni = np.linalg.pinv(np.diag([native2mni_dims[0], native2mni_dims[1], native2mni_dims[2], 1]))
+#mrs_aff_vox = np.dot(S_native2mni, mrs_aff_vox)
 
 
 ## Do the transform
@@ -110,7 +110,7 @@ print('Orientation: %s' % ori[0])
 print('Rotation: %0.1f deg' %  float(ori[1]))
 print('Position: %0.0f %0.0f %0.0f mm' % (pos[0], pos[1], pos[2]))
 print('          %s' % position_string(pos))
-#print('VOI: R>>L%0.0f A>>P%0.0f F>>H%0.0f mm' % (vox_size[0], vox_size[1], vox_size[2]))
+# print('VOI: R>>L%0.0f A>>P%0.0f F>>H%0.0f mm' % (vox_size[0], vox_size[1], vox_size[2]))
 
 # ### make a volume in T1 space
 mrs_corners = [[-0.5, -0.5, -0.5, 1], #0
@@ -127,8 +127,8 @@ mrs_corners = [[-0.5, -0.5, -0.5, 1], #0
 t1_corners = np.array([(np.dot(composed_affine, c)) for c in mrs_corners])
 
 # resample to match voxel grid
-#for i in range(3):
-#    t1_corners[:,i] = t1_corners[:,i]/t1_dims[i]
+for i in range(3):
+    t1_corners[:,i] = t1_corners[:,i]/t1_dims[i]
 
 t1_data = t1_nifti.get_data().squeeze()
 mrs_roi = np.ones_like(t1_data) * 0
