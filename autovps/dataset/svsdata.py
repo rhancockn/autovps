@@ -265,7 +265,7 @@ class SVSData(object):
 
         # store real and imaginary components in last 2 dims
         component_fid = np.stack((np.real(self.fid),np.imag(self.fid)), -2)
-        nifti = nib.Nifti2Image(component_fid, self.transform.T, extra=meta)
+        nifti = nib.Nifti2Image(component_fid, self.transform.get_matrix(), extra=meta)
         nib.save(nifti, path)
 
 
