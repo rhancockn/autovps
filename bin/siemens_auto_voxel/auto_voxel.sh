@@ -14,7 +14,9 @@ SESSION=$2
 SERIES=$3
 VOXEL=$4
 
-tdir=`mktemp -d`
+#tdir=`mktemp -d`
+tdir=/tmp/${VOXEL}-${SUBJ}-${SESSION}-${SERIES}
+mkdir $tdir
 
 echo "Converting..."
 dcm2niix -o $tdir -x n -f t1 ${NIDBDIR}/${SUBJ}/${SESSION}/${SERIES}
@@ -23,7 +25,7 @@ echo "Skull strip..."
 runROBEX.sh ${tdir}/t1.nii ${tdir}/t1_brain.nii
 
 echo "Normalization...."
-flirt -in ${tdir}/t1_brain -ref ${FSLDIR}/data/standard/MNI152_T1_2mm_brain -out ${tdir}/t1_brain_mni -omat ${tdir}/t1_brain_mni.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12  -interp trilinear
+flirt -in ${tdir}/t1_brain -ref ${FSLDIR}/data/standard/MNI152_T1_2mm_brain -out ${tdir}/t1_brain_mni -omat ${tdir}/t1_brain_mni.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 6  -interp trilinear
 
 for voi in ${AUTOVOXELDIR}/voxels/${VOXEL}/*.mat; do
   voi_name=`basename $voi`
@@ -35,9 +37,12 @@ for voi in ${AUTOVOXELDIR}/voxels/${VOXEL}/*.mat; do
 
 done
 
-# fslmerge -t ${tdir}/vois ${tdir}/voi_*
-# fslmaths ${tdir}/vois -Tmax ${tdir}/vois_combined
-# overlay 1 1 ${tdir}/t1 -a ${tdir}/vois_combined .5 1 ${tdir}/vois_rendered
-# slicer ${tdir}/vois_rendered -L -l /data1/fsl/etc/luts/renderhot.lut -c -S 5 2048 ${tdir}/vois_rendered.png
+fslmerge -t ${tdir}/vois ${tdir}/voi_*
+fslmaths ${tdir}/vois -Tmax ${tdir}/vois_combined
+overlay 1 1 ${tdir}/t1 -a ${tdir}/vois_combined .5 1 ${tdir}/vois_rendered
+slicer ${tdir}/vois_rendered -L -l /data1/fsl/etc/luts/renderhot.lut -c -S 5 2048 ${tdir}/vois_rendered.png
 
 echo $tdir
+rm -rf $tdir
+
+
