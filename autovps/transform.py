@@ -12,6 +12,9 @@ class Transform(object):
     def get_matrix(self):
         return(self.tform)
 
+    def get_inverse(self):
+        return Transform(np.linalg.pinv(self.get_matrix()))
+        
     def rotx(self, theta):
         """ Apply a rotation of theta degrees around the x axis
         """
