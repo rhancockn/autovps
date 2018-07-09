@@ -43,6 +43,6 @@ overlay 1 1 ${tdir}/t1 -a ${tdir}/vois_combined .5 1 ${tdir}/vois_rendered
 slicer ${tdir}/vois_rendered -L -l /data1/fsl/etc/luts/renderhot.lut -c -S 5 2048 ${tdir}/vois_rendered.png
 
 echo $tdir
-rm -rf $tdir
+#rm -rf $tdir
 
 

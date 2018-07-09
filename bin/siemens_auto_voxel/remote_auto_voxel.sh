@@ -9,4 +9,5 @@ mkdir $outdir
 ssh -t auto_voxel@psypacs.psy.uconn.edu "source /usr/local/anaconda3/bin/activate && /data1/auto_voxel/scripts/auto_voxel.sh $SUBJ $SESSION $SERIES $VOXEL" |tee $outdir/log
 scp -r auto_voxel@psypacs.psy.uconn.edu:/tmp/${outdir} .
 open ./${outdir}/vois_rendered.png
+ssh -t auto_voxel@psypacs.psy.uconn.edu "rm -rf /tmp/${outdir}"
 
