@@ -300,9 +300,9 @@ class SVSData(object):
                  'ppm': self.ppm, 'sz': np.float_(fids.shape), 'date': '',
                  'averages': n_averages, 'rawAverages': n_averages,
                  'subspecs': float(subspecs), 'rawSubspecs': float(rawSubspecs), 'Bo': B0,
-                 'txfrq': self.larmor/1.0e6, 'dwelltime': 1.0/self.sw,
+                 'txfrq': self.larmor, 'dwelltime': 1.0/self.sw,
                  'spectralwidth': self.sw, 'seq': self._sequence_name,
-                 'dims': dim_dict, 'te': self.te, 'tr': self.tr,
+                 'dims': dim_dict, 'te': self.te * 1e3, 'tr': self.tr * 1e3,
                  'pointsToLeftshift': 0}
 
         # writtentostruct
