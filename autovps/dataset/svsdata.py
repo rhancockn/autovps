@@ -41,7 +41,8 @@ class SVSData(object):
         self.sw = None
         self.t = None
         self.transform = None
-
+        self.is_mega = False
+        self.is_special = False
         self.dimnames = {'channel': 0, 'rep': 1, 'mega': 2, 'isis': 3, 't': 4}
 
 
@@ -84,7 +85,7 @@ class SVSData(object):
         if self._spec is not None:
             self._fid = np.fft.ifft(np.fft.ifftshift(self._spec))
             return(self._fid)
-        
+
         return(None)
 
     @fid.setter
@@ -105,7 +106,7 @@ class SVSData(object):
         if self._fid is not None:
             self._spec = np.fft.fftshift(np.fft.fft(self._fid))
             return(self._spec)
-        
+
         return(None)
 
     @spec.setter
@@ -128,7 +129,7 @@ class SVSData(object):
         if self._f is not None:
             self._ppm = self._f/(self.larmor)*1.0e6 + self._ppmshift
             return(self._ppm)
-        
+
         return(None)
 
     @ppm.setter
@@ -223,38 +224,126 @@ class SVSData(object):
     def save_fida(self, path):
         """ Convert the dataset to a FID-A compatible Matlab structure
         """
+        # input is Dimensions are channel x rep x mega x isis x t
+        # FID-A seems to accomodate only 4: t x chan x rep x subSpecs
+        # TODO: see if ISIS and MEGA subspecs are differentiated
+
+        # permute the axes to t x chan x rep x mega x isis
+        fids = np.transpose(self.fid, (4, 0,1,2,3))
+        specs = np.transpose(self.spec, (4, 0,1,2,3))
+        # reshape to combine subspecs
+        dims = list(fids.shape[0:-2])
+        dims.append(-1)
+        fids = np.reshape(fids, tuple(dims))
+        specs = np.reshape(specs, tuple(dims))
+
+        # remove last dimensi if there are no subSpecs
+        fids = np.squeeze(fids)
+        specs = np.squeeze(specs)
+
+        # fp to avoid int64 errors
+        dim_dict = {'t': 1.0, 'coils': 2.0, 'averages': 3.0, 'subSpecs': 0.0, 'extras': 0.0}
+
+        # there are still subSpectra
+        if fids.ndim == 4:
+            subspecs = fids.shape[-1]
+            rawSubspecs = fids.shape[-1]
+            dim_dict['subSpecs'] = 4.0
+        else:
+            subspecs = 0
+            rawSubspecs = 0
+
         if self.fid.shape[0]==1:
             addedrcvrs = 1
         else:
             addedrcvrs = 0
 
-        # TODO: check that subspecs are never ISIS directions for FID-A
-        if self.has_mega:
-            subspecs = self.fid.shape[self.mega_dim]
-        else:
-            subspecs = 1
-
-
         B0 = self.larmor/util.GYROMAGNETIC_RATIO[self.nucleus]
 
-        n_averages = int(self.fid.shape[self.dimnames['rep']])
-        flags = {'writtentostruct': 1, 'gotparams': 1, 'leftshifted': 0,
-                 'filtered': 0, 'zeropadded': 0, 'freqcorrected': 0,
-                 'phasecorrected': 0, 'averaged': int(n_averages == 1),
-                 'addedrcvrs': addedrcvrs,
-                 'subtracted': 0, 'writtentotext': 0, 'downsampled': 0}
-        mdict = {'fids': self.fid, 'specs': self.spec, 'sz': self.fid.shape[-1],
-                 'ppm': self.ppm, 't': self.t, 'spectralwidth': self.sw,
-                 'dwelltime': 1.0/self.sw, 'txfrq': self.larmor/1.0e6,
-                 'date': '', 'dims': fidadims, 'Bo': B0, 'averages': n_averages,
-                 'rawAverages': n_averages, 'subspecs': subspecs, 'rawSubspecs': subspecs,
-                 'seq': self.sequence_name, 'te': self.te, 'tr': self.tr,
+        n_averages = float(self.fid.shape[self.dimnames['rep']])
+        # fids - time domain MRS data.
+        # specs - frequency domain MRS data.
+        # t - vector of time values for plotting in the time domain [s]
+        # ppm - vector of frequency values for plotting in the frequency domain
+        # [ppm]
+        # sz - size of the fids and specs arrays
+        # date - date that the data was acquired or simulated
+        # averages - number of averages in the dataset (possibly altered by
+        # processing)
+        # rawAverages - number of averages in the original dataset (not altered by
+        # processing).
+        # subspecs - number of subspectra (ISIS, edit on/off, etc) in the dataset
+        # (possibly altered by processing).
+        # rawSubspecs - number of subspectra (ISIS, edit on/off, etc) in the original
+        # dataset (not altered by processing). Bo - magnetic field strength [Tesla]
+        # txfrq - Centre frequnecy [MHz];
+        # linewidth - linewidth of data (only used for simulated data) [Hz]
+        # n - number of spectral points
+        # dwelltime - dwell time of the data in the time domain [s] (dwelltime =
+        # 1/spectralwidth)
+        # sim - type of simulation (ideal vs. shaped pulses), only used for
+        #               simulated data.
+        # te seq dims
+        # - echo time of acquisition [ms], only used for simulated data - type of sequence used (only used for simulated data).
+        # - structure specifying which data dimensions are stored along
+        # which dimensions of the fids/specs arrays. Fields include:
+        # t - time/frequency dimension (usually this is 1, the first
+        # dimension of the fids/specs array).
+        # coils - for multiple receiver array, this is the dimension of
+        # the arrayed receiver data (can be 2, 3 or 4). averages - for multiple averages, this is the dimension of the
+        # averages (can be 2, 3 or 4).
+        # subSpecs - in the case of subtraction data (ISIS, MEGA-PRESS), this
+        # is the dimension of the subSpectra (can be 2, 3 or 4).
+
+
+        mdict = {'fids': fids, 'specs': specs, 't': self.t,
+                 'ppm': self.ppm, 'sz': np.float_(fids.shape), 'date': '',
+                 'averages': n_averages, 'rawAverages': n_averages,
+                 'subspecs': float(subspecs), 'rawSubspecs': float(rawSubspecs), 'Bo': B0,
+                 'txfrq': self.larmor/1.0e6, 'dwelltime': 1.0/self.sw,
+                 'spectralwidth': self.sw, 'seq': self._sequence_name,
+                 'dims': dim_dict, 'te': self.te, 'tr': self.tr,
                  'pointsToLeftshift': 0}
+
+        # writtentostruct
+        # gotparams
+        # filtered
+        # zeropadded
+        # freqcorrected
+        # phasecorrected
+        # averaged
+        # addedrcvrs
+        # Subtracted
+        # Writtentotext
+        # Downsampled
+        # avgNormalized
+        # isISIS
+        # - Has the dataset been written to a structure (1 or 0)
+        # - Have the parameters been retrieved from the dataset (1 or 0)
+        # - Has the dataset been filtered (1 or 0)
+        # - Has the dataset been zeropadded (1 or 0)
+        # - Has the dataset been frequency corrected (1 or 0) - Has the dataset been phase corrected (1 or 0)
+        # - Have the averages been combined (1 or 0)
+        # - Have the rcvr channels been combined (1 or 0).
+        # - Have the subspecs been subtracted (1 or 0)
+        # - Has the data been written to text file (1 or 0) - has the data been resampled to a different
+        # spectral resolution (1 or 0)
+        # - Has the data been amplitude scaled following
+        # combination of the averages (1 or 0)
+        # - Does the dataset contain ISIS subspectra (1 or 0)
+
+        flags = {'writtentostruct': 1, 'gotparams': 1, 'filtered': 0,
+                 'zeropadded': 0, 'freqcorrected': 0, 'phasecorrected': 0,
+                 'averaged': int(n_averages == 1), 'addedrcvrs': addedrcvrs,
+                 'Subtracted': 0, 'Writtentotext': 0, 'Downsampled': 0,
+                 'avgNormalized': 0, 'isISIS': int(self.is_special),
+                 'leftshifted': 0}
+
         if self.sequence_type == 'STEAM':
             mdict['tm'] = self.tm
 
         mdict['flags'] = flags
-        scipy.io.savemat(path, mdict, format='5', long_field_names=True)
+        scipy.io.savemat(path, {'svs': mdict}, format='5', long_field_names=True)
 
     def save_nifti(self, path):
         """ Convert the dataset to a NIFTI
@@ -267,5 +356,3 @@ class SVSData(object):
         component_fid = np.stack((np.real(self.fid),np.imag(self.fid)), -2)
         nifti = nib.Nifti2Image(component_fid, self.transform.get_matrix(), extra=meta)
         nib.save(nifti, path)
-
-
