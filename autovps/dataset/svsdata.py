@@ -335,7 +335,7 @@ class SVSData(object):
         flags = {'writtentostruct': 1, 'gotparams': 1, 'filtered': 0,
                  'zeropadded': 0, 'freqcorrected': 0, 'phasecorrected': 0,
                  'averaged': int(n_averages == 1), 'addedrcvrs': addedrcvrs,
-                 'Subtracted': 0, 'Writtentotext': 0, 'Downsampled': 0,
+                 'subtracted': 0, 'Writtentotext': 0, 'Downsampled': 0,
                  'avgNormalized': 0, 'isISIS': int(self.is_special),
                  'leftshifted': 0}
 

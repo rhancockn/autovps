@@ -257,9 +257,14 @@ class Siemens(object):
 
 
         # permute data for SPECIAL and MEGA
+        print('Read %d acquisitions from %d channels' % (n_reps, n_channels))
+        print(channels.keys())
 
         if self.get_parameter('SequenceName') in ['eja_svs_mpress', 'eja_svs_mslaser']:
-            data = np.reshape(data, (n_channels, n_reps/2, 2, 1, self.get_parameter('DataPointColumns')))
+            data_on = data[:, 0:int(n_reps/2.), 0, ::]
+            data_off = data[:, int(n_reps/2.):n_reps, 0, ::]
+            data = np.stack((data_off, data_on), 2)
+            #data = np.reshape(data, (n_channels, int(n_reps/2.), 2, 1, self.get_parameter('DataPointColumns')))
 
         self.data = data
         return(data)
