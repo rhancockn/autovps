@@ -1,6 +1,7 @@
 import struct
 import numpy as np
 import six  # for 2/3 compatibility
+import json
 import nibabel.nicom.dicomwrappers as dcmwrapper
 from pytest import approx
 
