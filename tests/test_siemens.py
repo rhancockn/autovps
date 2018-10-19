@@ -93,3 +93,17 @@ def test_read_unaveraged():
     for i in range(data.data.shape[0]):
         for j in range(data.data.shape[1]):
             assert data.data[i, j, 0, 0, -1] != 0
+
+def test_sidecar():
+    """Test creating a BIDS sidecar
+    """
+    # TODO: Check value consistency
+    data = siemens.Siemens('tests/data/siemens/eja_svs_press_uncombined')
+    with open('test.json', 'w+') as fp:
+        json.dump(data.get_sidecar(), fp, indent=3)
+
+    with open('test.json') as fp:
+        bids = json.load(fp)
+
+    # save the transform
+    np.savetxt('sub-test_from-Device_to-orig_mode-image_xfm.mat', data.qform.get_matrix())

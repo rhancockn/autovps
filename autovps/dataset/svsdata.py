@@ -3,6 +3,7 @@ import scipy.io
 import nibabel as nib
 import warnings
 import autovps.util as util
+import json
 
 class SVSData(object):
     """Class for SVS spectroscopy data
@@ -171,6 +172,7 @@ class SVSData(object):
     @property
     def sequence_type(self):
         return (self._sequence_type)
+
     @sequence_type.setter
     def sequence_type(self, sequence_type):
         known_types = {'STEAM', 'PRESS', 'LASER', 'sLASER', 'MEGAPRESS', 'MEGASPECIAL', 'UNKNOWN'}
@@ -186,7 +188,6 @@ class SVSData(object):
 
         if sequence_type in {'SPECIAL', 'MEGASPECIAL'}:
             self.is_special = True
-
 
     @property
     def sequence_name(self):

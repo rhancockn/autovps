@@ -10,6 +10,7 @@ import warnings
 import nibabel.nicom.csareader as csareader
 import nibabel.nicom.dicomwrappers as dcmwrapper
 import numpy as np
+import json
 from autovps.transform import Transform
 from autovps.dataset import svsdata
 
@@ -165,9 +166,11 @@ class Siemens(object):
         Dimensions are channel x rep x mega x isis x t
         """
 
+        print('Reading data...')
         if os.path.isfile(self.path):
             dcm = dcmwrapper.wrapper_from_file(self.path)
             data = np.array(_read_fid(dcm), ndmin=5)
+            self.dcm_data = dcm.dcm_data
 
         elif os.path.isdir(self.path):
             # read a directory of DICOMS, each containing one fid
@@ -189,6 +192,7 @@ class Siemens(object):
             # true for eja sequences
             lastdcmfile = os.path.join(self.path, files[-1])
             lastdcm = dcmwrapper.wrapper_from_file(lastdcmfile)
+            self.dcm_data = lastdcm.dcm_data
             lastinstance = int(lastdcm.get((0x0020, 0x0013)).value)
 
             # figure out which channels are on
@@ -197,8 +201,8 @@ class Siemens(object):
             siemens_hdr = csa_series['tags']['MrPhoenixProtocol']['items'][0]
             m = re.findall(r"""sCoilSelectMeas.aRxCoilSelectData\[0\].asList\[(?P<coilnum>\d+)\].sCoilElementID.tElement\t = \t""(?P<coilname>[HENC]+\d+)""""", siemens_hdr)
             channels = dict(m)
-            channels = dict(zip(channels.values(), channels.keys()))
-            n_channels = len(channels)
+            self.channels = dict(zip(channels.values(), channels.keys()))
+            n_channels = len(self.channels)
 
 
             # is the data combined over channels?
@@ -295,6 +299,49 @@ class Siemens(object):
 
         return(data)
 
+    def get_sidecar(self):
+        """Returns a BIDS-style sidecar
+        """
+
+        json_dict = _csa_to_dict(self.csa)
+        # data has to be read in to count channels
+        if self.data is None:
+            self.read_data()
+        json_dict['ReceiveCoilActiveElements'] = list(self.channels.keys())
+        json_dict.pop('ImaCoilString', None)
+        if self.qform is None:
+            self.calculate_transform()
+        json_dict['Transform'] = np.squeeze(np.asarray(self.qform.get_matrix())).tolist()
+
+        dicom_tags = [((0x0008, 0x0060), 'Modality'),
+                       ((0x0008, 0x0008), 'ImageType'),
+                       ((0x0008, 0x0070), 'Manufacturer'),
+                       ((0x0008, 0x0080), 'InstitutionName'),
+                       ((0x0008, 0x0081), 'InstitutionAddress'),
+                       ((0x0008, 0x1010), 'StationName'),
+                       ((0x0008, 0x1030), 'StudyDescription'),
+                       ((0x0008, 0x103e), 'SeriesDescription'),
+                       ((0x0008, 0x1090), 'ManufacturersModelName'),
+                       ((0x0018, 0x0015), 'BodyPartExamined'),
+                       ((0x0018, 0x1000), 'DeviceSerialNumber'),
+                       ((0x0018, 0x1020), 'SoftwareVersions'),
+                       ((0x0018, 0x1030), 'ProtocolName'),
+                       ((0x0018, 0x5100), 'PatientPosition'),
+                       ((0x0020, 0x0011), 'SeriesNumber'),
+                       ((0x0020, 0x0012), 'AcquisitionNumber'),
+                       ((0x0020, 0x4000), 'ImageComments')
+        ]
+
+        for tag in dicom_tags:
+            json_dict[tag[1]] = self.dcm_data.get(tag[0]).value
+
+        json_dict.pop('ReferencedImageSequence', None)
+        json_dict.pop('ScanningSequence')
+
+        json_dict.update({'ImageType': list(json_dict['ImageType'])})
+        json_dict.update({'SeriesNumber': int(json_dict['SeriesNumber'])})
+        json_dict.update({'AcquisitionNumber': int(json_dict['AcquisitionNumber'])})
+        return(json_dict)
 
 def _read_fid(dcm):
     """Read a fid from a PyDicom wrapper.
@@ -315,3 +362,24 @@ def _read_fid(dcm):
     cmplx = [data[i]+data[i+1]*1j for i in range(0, len(data), 2)]
 
     return(cmplx)
+
+def _csa_to_dict(csa_info):
+    """Convert a csa header to a dictionary
+
+    Arguments:
+        csa_header (dict): the CSA record from `csareader.get_csa_header`
+
+    Returns:
+        json_dict: a dictionary with non-empty field value pairs
+    """
+    csa_dict = csa_info.get('tags')
+    json_dict = dict()
+    for k in csa_dict.keys():
+        if csa_dict[k]['n_items'] != 0:
+            item = csa_dict[k]['items']
+            if len(item) > 1:
+                json_dict[k] = item
+            else:
+                json_dict[k] = item[0]
+
+    return(json_dict)
