@@ -202,7 +202,7 @@ class Siemens(object):
             m = re.findall(r"""sCoilSelectMeas.aRxCoilSelectData\[0\].asList\[(?P<coilnum>\d+)\].sCoilElementID.tElement\t = \t""(?P<coilname>[HENC]+\d+)""""", siemens_hdr)
             channels = dict(m)
             channels = dict(zip(channels.values(), channels.keys()))
-            n_channels = len(self.channels)
+            n_channels = len(channels)
             self.channels = channels
 
             # is the data combined over channels?
