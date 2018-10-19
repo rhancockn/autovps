@@ -201,9 +201,9 @@ class Siemens(object):
             siemens_hdr = csa_series['tags']['MrPhoenixProtocol']['items'][0]
             m = re.findall(r"""sCoilSelectMeas.aRxCoilSelectData\[0\].asList\[(?P<coilnum>\d+)\].sCoilElementID.tElement\t = \t""(?P<coilname>[HENC]+\d+)""""", siemens_hdr)
             channels = dict(m)
-            self.channels = dict(zip(channels.values(), channels.keys()))
+            channels = dict(zip(channels.values(), channels.keys()))
             n_channels = len(self.channels)
-
+            self.channels = channels
 
             # is the data combined over channels?
             # mri_probedicom reports ucUncombImages, but where is this in the CSA?
