@@ -251,14 +251,14 @@ class Siemens(object):
                 else:
                     data[0, ri, 0, 0, :] = fid
 
+            print('Read %d acquisitions from %d channels' % (n_reps, n_channels))
+            print(channels.keys())
         # take the complex conjugate, which Tarquin seems to expect
         if conj:
             data = np.conj(data)
 
 
         # permute data for SPECIAL and MEGA
-        print('Read %d acquisitions from %d channels' % (n_reps, n_channels))
-        print(channels.keys())
 
         if self.get_parameter('SequenceName') in ['eja_svs_mpress', 'eja_svs_mslaser']:
             data_on = data[:, 0:int(n_reps/2.), 0, ::]
