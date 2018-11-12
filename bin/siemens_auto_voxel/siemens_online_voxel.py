@@ -43,7 +43,7 @@ def position_string(pos):
 
 
 # load the MNI template
-FSLDIR = os.getenv('FSLDIR', '/usr/loca/fsl')
+FSLDIR = os.getenv('FSLDIR', '/usr/local/fsl')
 mni_nifti = nib.load(os.path.join(FSLDIR, 'data/standard/MNI152_T1_1mm.nii.gz'))
 mni_aff = mni_nifti.get_qform()
 
