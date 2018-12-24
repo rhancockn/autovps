@@ -32,10 +32,10 @@ Further down, locate the series number of the T1 you want to use. Some T1 acquis
 
 #### Run the script
 
-Open Terminal and type `remote_auto_voxel.sh SubjectUID StudyNumber Series Project`, where
+Open Terminal and type `remote_auto_voxel.sh SubjectUID StudyNumber Series TD`, where
 
 - `SubjectUID`, `StudyNumber`, `Series` are taken from NiDB as above
-- `Project` is the name for the set of predefined voxels. This has to be setup beforehand. Currently the only option is `DIPOLE`
+
 
 #### Wait
 
@@ -44,7 +44,7 @@ The script will take about 5 minutes to run. Ideally you have structured your sc
 
 #### Output
 
-When the script is done, the end of the output will contain something like below. Pass this information to Elisa.
+When the script is done, the end of the output will contain something like below. Pass this information to the tech.
 
 The VOI dimensions are for informational purposes only, but should be close to your desired VOI dimensions (the transformation is rescaled to preserve the VOI size).
 

@@ -110,7 +110,7 @@ ip_rot = -1.0*float(ori[1])
 
 print('Orientation: %s' % ori[0])
 print('Rotation: %0.1f deg' %  ip_rot)
-print('Position: %0.0f %0.0f %0.0f mm' % (pos[0], pos[1], pos[2]))
+print('Position: %0.0f %0.0f %0.0f mm' % (-1*pos[0], -1*pos[1], pos[2]))
 print('          %s' % position_string(pos))
 print('VOI: R>>L%0.0f A>>P%0.0f F>>H%0.0f mm' % (vox_size[0], vox_size[1], vox_size[2]))
 
