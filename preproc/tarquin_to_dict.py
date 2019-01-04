@@ -1,7 +1,8 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # Converts Tarquin output CSV files to a JSON structure
 import pandas as pd
 import re
+
 
 def _df_to_dict(t, prefix='', d=None):
     """Convert a table to a dict.
@@ -20,7 +21,7 @@ def _df_to_dict(t, prefix='', d=None):
 
     re_paren = re.compile(r' *\(.*\)')
     for c in t.columns:
-        c_name = prefix + re.sub(re_paren, '', c).replace(' ','_')
+        c_name = prefix + re.sub(re_paren, '', c).replace(' ', '_')
         try:
             v = float(t[c][0])
         except ValueError:
@@ -44,22 +45,22 @@ def tarquin_to_dict(fname):
     n_fields = 0
     with open(fname, 'r') as fp:
         for line in fp:
-            n_fields=max(n_fields,len(line.split(',')))
-            
+            n_fields = max(n_fields, len(line.split(',')))
 
-    df = pd.read_csv(fname, header=None, names=range(n_fields), engine='python')
+    df = pd.read_csv(fname, header=None, names=range(n_fields),
+                     engine='python')
     table_names = ["Signal amplitudes", "CRLBs (standard deviation)",
-                    "Fit diagnostics", "Basis shifts and dampings", 
-                    "Dynamic frequency corrections", "Geometry parameters", 
-                    "Data parameters"]
+                   "Fit diagnostics", "Basis shifts and dampings",
+                   "Dynamic frequency corrections", "Geometry parameters",
+                   "Data parameters"]
     groups = df[0].isin(table_names).cumsum()
-    tables = {g.iloc[0,0]: g.iloc[1:] for k,g in df.groupby(groups)}
+    tables = {g.iloc[0, 0]: g.iloc[1:] for k, g in df.groupby(groups)}
     for t_name in tables:
-    	tables[t_name].columns = tables[t_name].iloc[0]
-    	tables[t_name] =  tables[t_name].reset_index(drop=True)
-    	tables[t_name] = tables[t_name].reindex(tables[t_name].index.drop(0))
-    	tables[t_name] =  tables[t_name].reset_index(drop=True)
-    	tables[t_name] = tables[t_name].dropna(how='all',axis=1)
+        tables[t_name].columns = tables[t_name].iloc[0]
+        tables[t_name] = tables[t_name].reset_index(drop=True)
+        tables[t_name] = tables[t_name].reindex(tables[t_name].index.drop(0))
+        tables[t_name] = tables[t_name].reset_index(drop=True)
+        tables[t_name] = tables[t_name].dropna(how='all', axis=1)
 
     t_dict = {}
     for t_name in ["Signal amplitudes", "Fit diagnostics"]:
@@ -79,13 +80,17 @@ def tarquin_to_dict(fname):
 # Run the module as a command line interface
 # CSV to JSON
 
+
 if __name__ == '__main__':
     import json
     import argparse
-    parser = argparse.ArgumentParser(description='Convert a Tarquin CSV to a JSON')
+    parser = argparse.ArgumentParser(
+        description='Convert a Tarquin CSV to a JSON')
 
-    parser.add_argument('--csv', type=str, required=True, help="Path to Tarquin CSV")
-    parser.add_argument('--json', type=str, required=True, help="Path to save JSON")
+    parser.add_argument('--csv', type=str, required=True,
+                        help="Path to Tarquin CSV")
+    parser.add_argument('--json', type=str, required=True,
+                        help="Path to save JSON")
     args = parser.parse_args()
 
     t_dict = tarquin_to_dict(args.csv)
