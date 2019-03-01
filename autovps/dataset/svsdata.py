@@ -128,7 +128,7 @@ class SVSData(object):
         if self.larmor is None:
             return(None)
         if self._f is not None:
-            self._ppm = self._f/(self.larmor)*1.0e6 + self._ppmshift
+            self._ppm = -self._f/(self.larmor)*1.0e6 + self._ppmshift
             return(self._ppm)
 
         return(None)
