@@ -28,10 +28,10 @@ parser.set_defaults(load=True)
 parser.set_defaults(fida=True)
 parser.set_defaults(tarquin=True)
 
-args = parser.parse_args(['--prefix', '/Users/roh17004/Downloads/TD919/autotest3',
-                         '--t1','/Users/roh17004/Downloads/TD919/5/TD919-T1w.nii.gz',
-                         '/Users/roh17004/Downloads/TD919/39', '/Users/roh17004/Downloads/TD919/42',
-                         '/Users/roh17004/Downloads/TD919/45'])
+# args = parser.parse_args(['--prefix', '/Users/roh17004/Downloads/TD919/autotest3',
+#                          '--t1','/Users/roh17004/Downloads/TD919/5/TD919-T1w.nii.gz',
+#                          '/Users/roh17004/Downloads/TD919/39', '/Users/roh17004/Downloads/TD919/42',
+#                          '/Users/roh17004/Downloads/TD919/45'])
 
 args = parser.parse_args()
 
