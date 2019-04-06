@@ -4,4 +4,3 @@ nibabel
 scipy
 pandas
 argparse
-json
