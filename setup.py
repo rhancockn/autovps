@@ -1,14 +1,15 @@
 from setuptools import setup, find_packages
+import glob
 
 setup(
         name='autovps',
         version="0.0.1",
-        packages=find_packages(),
+        packages=['autovps'],
         url='https://github.com/rhancockn/autovps.git',
         license='MIT',
         author='Roeland Hancock',
         author_email='rhancock@gmail.com',
-        description='',
+        description='Preprocessing utilities for CMRR SVS data',
         classifiers=[
             # How mature is this project? Common values are
             #   3 - Alpha
@@ -33,5 +34,7 @@ setup(
 
         ],
         install_requires=['numpy', 'pydicom', 'nibabel'],
-        test_requires=['pytest']
+        test_requires=['pytest'],
+        python_requires= '>=3',
+        scripts=glob.glob('bin/*.py')
 )

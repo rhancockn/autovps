@@ -11,31 +11,37 @@ The `auto_voxel` script calculates the position of a predefined standard (MNI) s
 
 ### On the iMac in the console room
 
+- Login: EGI
+- Password: geodesic
+
 #### Find the scan in NiDB
+
+Open NiDB in the browser ([http://psypacs.psy.uconn.edu/nidb/index.php](http://psypacs.psy.uconn.edu/nidb/index.php)). Your new scan will appear on the home page in the 'New Imaging Studies' section once it has been archived. Refresh the page until you see the study appear.
+
 You need three identifiers from NiDB:
 
 1. The `Subject UID`
-2. The session number
+2. The `Study #`
 3. The series number of the T1 you want to use for alignment
 
-First, wait for the new data to appear on the main NiDB page. When the data you have just acquired appears, click on the corrsponding `Study #`.
+First, wait for the new data to appear on the main NiDB page. When the data you have just acquired appears, click on the corresponding `Study #`.
 ![](figs/NiDB_main.png)
 
 You'll be taken to the study page. Note the `Subject UID` (which does not end in a number), and `Study number`.
 
 ![](figs/NiDB_study.png)
 
-Further down, locate the series number of the T1 you want to use. Some T1 acquistions will generate two seemingly identical series (as shown below). In this case, the later series number is a good choice.
+Further down, locate the series number of the T1 you want to use. Some T1 acquisitions will generate two seemingly identical series (as shown below). In this case, the later series number is a good choice.
 
 ![](figs/NiDB_series.png)
 
-
 #### Run the script
 
-Open Terminal and type `remote_auto_voxel.sh SubjectUID StudyNumber Series TD`, where
+Open Terminal and type `remote_auto_voxel.sh SubjectUID StudyNumber Series StudyName`, where
 
 - `SubjectUID`, `StudyNumber`, `Series` are taken from NiDB as above
-
+- **Note that `SubjectUID` ends in a letter, not a number.**
+- `StudyName` is the identifier you have been provided.
 
 #### Wait
 
