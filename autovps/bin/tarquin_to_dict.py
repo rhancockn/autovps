@@ -69,19 +69,19 @@ def tarquin_to_dict(fname):
     t = tables["CRLBs (standard deviation)"]
     t_dict = _df_to_dict(t, prefix='CRLB', d=t_dict)
 
-    t = tables["Dynamic frequency corrections"]
-    delta = pd.to_numeric(t['shift (Hz)'])
-    t_dict['fdrift_mean'] = delta.mean()
-    t_dict['fdrift_sd'] = delta.std()
-    delta_z = (delta - t_dict['fdrift_mean'])/t_dict['fdrift_sd']
-    t_dict['fdrift_noutlier'] = sum(delta_z.abs() > 3)
+    if "Dynamic frequency corrections" in tables.keys():
+        t = tables["Dynamic frequency corrections"]
+        delta = pd.to_numeric(t['shift (Hz)'])
+        t_dict['fdrift_mean'] = delta.mean()
+        t_dict['fdrift_sd'] = delta.std()
+        delta_z = (delta - t_dict['fdrift_mean'])/t_dict['fdrift_sd']
+        t_dict['fdrift_noutlier'] = sum(delta_z.abs() > 3)
     return(t_dict)
 
 # Run the module as a command line interface
 # CSV to JSON
 
-
-if __name__ == '__main__':
+def main():
     import json
     import argparse
     parser = argparse.ArgumentParser(
@@ -97,3 +97,7 @@ if __name__ == '__main__':
     fp = open(args.json, 'w+')
     json.dump(t_dict, fp)
     fp.close()
+
+
+if __name__ == '__main__':
+    main()

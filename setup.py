@@ -4,7 +4,7 @@ import glob
 setup(
         name='autovps',
         version="0.0.1",
-        packages=['autovps'],
+        packages=find_packages(),
         url='https://github.com/rhancockn/autovps.git',
         license='MIT',
         author='Roeland Hancock',
@@ -36,5 +36,11 @@ setup(
         install_requires=['numpy', 'pydicom', 'nibabel'],
         test_requires=['pytest'],
         python_requires= '>=3',
-        scripts=glob.glob('bin/*.py')
+        scripts=glob.glob('bin/*.py'),
+        entry_points={
+          'console_scripts': [
+              'process_cmrr.py = autovps.bin.process_cmrr:main',
+              'tarquin_to_dict.py = autovps.bin.tarquin_to_dict:main'
+          ]
+      },
 )
