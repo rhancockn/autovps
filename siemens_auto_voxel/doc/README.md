@@ -6,13 +6,17 @@ The `auto_voxel` script calculates the position of a predefined standard (MNI) s
 ## Usage
 
 ### At the scanner console
-- Acquire a sag T1-weighted volume with whole brain coverage
+- Acquire a T1-weighted volume with whole brain coverage
 - Send the T1 series to NiDB
 
-### On the iMac in the console room
+### On the Linux computer in the console room
 
-- Login: EGI
-- Password: geodesic
+- Login: `birc`
+- Password: `brainz888`
+
+Open Firefox and a Terminal window by clicking on their respective icons.
+
+![](figs/linux_icons.png)
 
 #### Find the scan in NiDB
 
@@ -41,7 +45,12 @@ Open Terminal and type `remote_auto_voxel.sh SubjectUID StudyNumber Series Study
 
 - `SubjectUID`, `StudyNumber`, `Series` are taken from NiDB as above
 - **Note that `SubjectUID` ends in a letter, not a number.**
-- `StudyName` is the identifier you have been provided.
+- `StudyName` is the study-specific identifier you have been provided.
+
+Press enter.
+
+![](figs/cmdline.png)
+
 
 #### Wait
 
@@ -50,7 +59,7 @@ The script will take about 5 minutes to run. Ideally you have structured your sc
 
 #### Output
 
-When the script is done, the end of the output will contain something like below. Pass this information to the tech.
+When the script is done, the end of the output will contain something like below. The voxel locations are automatically printed out on the LaserJet and shown on the screen. Pass this information to the tech.
 
 The VOI dimensions are for informational purposes only, but should be close to your desired VOI dimensions (the transformation is rescaled to preserve the VOI size).
 
