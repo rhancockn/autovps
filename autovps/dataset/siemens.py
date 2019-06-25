@@ -47,7 +47,7 @@ class Siemens(object):
             # find the first dicom file to read meta data from
             files = os.listdir(self.path)
             # exclude any non dicoms
-            files = [f for f in files if (os.path.isfile(os.path.join(self.path, f)) and f.endswith(('.DCM', '.dcm', '.ima', '.IMA')))]
+            files = [f for f in files if (os.path.isfile(os.path.join(self.path, f)) and f.endswith(('.DCM', '.dcm', '.ima', '.IMA')) and not f.startswith('.'))]
             files = sorted(files)
             dcmfile = os.path.join(self.path, files[0])
 
