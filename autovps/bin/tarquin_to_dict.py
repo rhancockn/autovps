@@ -69,6 +69,16 @@ def tarquin_to_dict(fname):
     t = tables["CRLBs (standard deviation)"]
     t_dict = _df_to_dict(t, prefix='CRLB', d=t_dict)
 
+    # convert errors to percentages
+    crlb_dict = _df_to_dict(t, prefix='CRLB', d={})
+    for crlb_metab, crlb_au in crlb_dict.items():
+        if 'CRLB_' in crlb_metab:
+            metab = crlb_metab.split('_')[1]
+            try:
+                t_dict['CRLBPCT_' + metab] = crlb_au / t_dict[metab] * 100.0
+            except ZeroDivisionError as e:
+                pass
+
     if "Dynamic frequency corrections" in tables.keys():
         t = tables["Dynamic frequency corrections"]
         delta = pd.to_numeric(t['shift (Hz)'])
