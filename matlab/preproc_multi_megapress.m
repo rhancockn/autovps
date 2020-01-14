@@ -34,160 +34,31 @@
 %
 %function [diffSpec,sumSpec,subSpec1,subSpec2,outw]=run_megapressproc_GEauto(filestring,coilcombos,avgAlignDomain,alignSS);
 
-function aligned_spec = preproc_megapress(prefix_path, mat_raww, varargin)
+function preproc_multi_megapress(prefix_path, mat_raww, varargin)
+
 
 mat_ws = varargin;
+processed_specs = cell(1, length(mat_ws));
 
-water=~isempty(mat_raww);
-if ~isempty(mat_raww)
-    raww = load(mat_raww);
-    raww = raww.svs;
+% process each run up to alignment
+for dsi=1:length(mat_ws)
+    processed_specs{dsi} = preproc_megapress([prefix_path '_run-' num2str(dsi)], mat_raww, mat_ws{dsi});
 end
 
-% check if there are multiple datasets to process
+concat = struct();
+for dsi=1:length(mat_ws)
+    concat = op_concatAverages(concat, processed_specs{dsi});
+end
 
-% %read in both datasets:
-raw=load(mat_ws{1});
-raw = raw.svs;
-
-
-ccGiven=false;
 mkdir(prefix_path);
 cd(prefix_path)
 %make a new directory for the output report and figures:
 mkdir(['./report']);
 mkdir(['./report/figs']);
-avgAlignDomain='f';
-alignSS=2;
 
-if water
-    if ~ccGiven
-        coilcombos=op_getcoilcombos(raww,1);
-    end
-    [outw_cc,fidw_pre,specw_pre,phw,sigw]=op_addrcvrs(raww,1,'w',coilcombos);
-else
-    if ~ccGiven
-        coilcombos=op_getcoilcombos(op_averaging(op_combinesubspecs(raw,'diff')),1);
-    end
-end
-[out_cc,fid_pre,spec_pre,ph,sig]=op_addrcvrs(raw,1,'w',coilcombos);
-coil_comb = out_cc;
-[out_av_cc,fid_av_pre,spec_av_pre]=op_addrcvrs(op_averaging(raw),1,'w',coilcombos);
-raw_av=op_averaging(raw);
-%generate unprocessed spectrum:
-out_noproc=op_combinesubspecs(op_averaging(out_cc),'diff');
-%Generate plots showing coil channels before and after phase alignment
-%figure('position',[0 50 560 420]);
-h=figure('visible','off');
-subplot(1,2,1);
-plot(raw_av.ppm,real(raw_av.specs(:,:,1,1)));xlim([1 5]);
-set(gca,'FontSize',12);
-set(gca,'XDir','reverse');
-xlabel('Frequency (ppm)','FontSize',10);
-ylabel('Amplitude (a.u.)','FontSize',10);
-title('Before correction','FontSize',12);
-box off;
-subplot(1,2,2);
-plot(raw_av.ppm,real(spec_av_pre(:,:,1,1)));xlim([1 5]);
-set(gca,'FontSize',12);
-set(gca,'XDir','reverse');
-xlabel('Frequency (ppm)','FontSize',10);
-ylabel('Amplitude(a.u.)','FontSize',10);
-title('After correction','FontSize',12);
-box off;
-set(h,'PaperUnits','centimeters');
-set(h,'PaperPosition',[0 0 20 10]);
-saveas(h,['./report/figs/coilReconFig'],'jpg');
-saveas(h,['./report/figs/coilReconFig'],'fig');
-close(h);
-%%%%%%%%OPTIONAL REMOVAL OF BAD AVERAGES%%%%%%%%%%%%%%%%%%%%
-close all;
-out_cc2=out_cc;
-nBadAvgTotal=0;
-nbadAverages=1;
-rmbadav='y';
-close all;
-if rmbadav=='n' || rmbadav=='N'
-    out_rm=out_cc;
-    nsd='N/A';
-else
-    sat='n'
-    while sat=='n' || sat=='N'
-        nsd=4; %Setting the number of standard deviations;
-        iter=1;
-        nbadAverages=1;
-        nBadAvgTotal=0;
-        out_cc2=out_cc;
-        while nbadAverages>0
-            [out_rm,metric{iter},badAverages]=op_rmbadaverages(out_cc2,nsd,'t');
-            badAverages;
-            nbadAverages=length(badAverages)*raw.sz(raw.dims.subSpecs);
-            nBadAvgTotal=nBadAvgTotal+nbadAverages;
-            out_cc2=out_rm;
-            iter=iter+1;
-            disp([num2str(nbadAverages) ' bad averages removed on this iteration.']);
-            disp([num2str(nBadAvgTotal) ' bad averages removed in total.']);
-            close all;
-        end
-        %figure('position',[0 50 560 420]);
-        %Make figure to show pre-post removal of averages
-        h=figure('visible','off');
-        subplot(2,2,1);
-        plot(out_cc.ppm,real(out_cc.specs(:,:,1)));xlim([1 5]);
-        set(gca,'FontSize',8);
-        set(gca,'XDir','reverse');
-        xlabel('Frequency (ppm)','FontSize',10);
-        ylabel('Amplitude(a.u.)','FontSize',10);
-        title('Edit-ON Before','FontSize',12);
-        box off;
-        subplot(2,2,2);
-        plot(out_rm.ppm,real(out_rm.specs(:,:,1)));xlim([1 5]);
-        set(gca,'FontSize',8);
-        set(gca,'XDir','reverse');
-        xlabel('Frequency (ppm)','FontSize',10);
-        ylabel('Amplitude(a.u.)','FontSize',10);
-        title('Edit-ON After','FontSize',12);
-        box off;
-        subplot(2,2,3);
-        plot(out_cc.ppm,real(out_cc.specs(:,:,2)));xlim([1 5]);
-        set(gca,'FontSize',8);
-        set(gca,'XDir','reverse');
-        xlabel('Frequency (ppm)','FontSize',10);
-        ylabel('Amplitude(a.u.)','FontSize',10);
-        title('Edit-OFF Before','FontSize',12);
-        box off;
-        subplot(2,2,4);
-        plot(out_rm.ppm,real(out_rm.specs(:,:,2)));xlim([1 5]);
-        set(gca,'FontSize',8);
-        set(gca,'XDir','reverse');
-        xlabel('Frequency (ppm)','FontSize',10);
-        ylabel('Amplitude(a.u.)','FontSize',10);
-        title('Edit-OFF After','FontSize',12);
-        box off;
-        set(h,'PaperUnits','centimeters');
-        set(h,'PaperPosition',[0 0 20 15]);
-        saveas(h,['./report/figs/rmBadAvg_prePostFig'],'jpg');
-        saveas(h,['./report/figs/rmBadAvg_prePostFig'],'fig');
-        close(h);
-        %figure('position',[0 550 560 420]);
-        h=figure('visible','off');
-        plot([1:length(metric{1})],metric{1},'.r',[1:length(metric{iter-1})],metric{iter-1},'x','MarkerSize',16);
-        set(gca,'FontSize',8);
-        xlabel('Scan Number','FontSize',10);
-        ylabel('Deviation Metric','FontSize',10);
-        legend('Before rmBadAv','Before rmBadAv','After rmBadAv','After rmBadAv');
-        legend boxoff;
-        title('Deviation Metric','FontSize',12);
-        box off;
-        set(h,'PaperUnits','centimeters');
-        set(h,'PaperPosition',[0 0 20 10]);
-        saveas(h,['./report/figs/rmBadAvg_scatterFig'],'jpg');
-        saveas(h,['./report/figs/rmBadAvg_scatterFig'],'fig');
-        close(h);
-        %sat1=input('are you satisfied with the removal of bad averages? ','s');
-        sat='y';
-    end
-end
+water = 0;
+avgAlignDomain = 'f'
+out_rm = concat;
 %NOW ALIGN AVERAGES:  A.K.A. Frequency Drift Correction.
 driftCorr='y';
 if driftCorr=='n' || driftCorr=='N'
@@ -320,6 +191,7 @@ else
         outw_av=op_averaging(outw_aa);
     end
 end
+
 %now leftshift
 out_ls=op_leftshift(out_av,out_av.pointsToLeftshift);
 if water
@@ -335,7 +207,6 @@ if water
     outw_ph=op_addphase(outw_ls,ph0);
 end
 %do same phase corection on unprocessed data
-out_noproc=op_addphase(out_noproc,ph0);
 out_spectra=out_ph;
 on_spectra=op_takesubspec(out_ph,1);
 off_spectra=op_takesubspec(out_ph,2);
@@ -346,28 +217,9 @@ off_comb=off_spectra;
 out_ph = op_concatSubspecs(on_comb, off_comb);
 [out_ph,fs,phs]=op_alignAverages(out_ph,.25,'y');
 %Now align subspecs if desired:
-switch alignSS
-    case 2
+
         out=op_alignMPSubspecs(out_ph);
-        %         figure('position',[0 50 560 420]);
-        %         out_ph_filt=op_filter(out_ph,5);
-        %         subSpecTool(out_ph_filt,0,7);
-        %         disp('***************************************************************************************');
-        %         disp('Use GUI interface to align edit-ON and edit-OFF scans by adjusting Phase and Frequency.');
-        %         disp('Try to minimize the residual water, residual Creatine, and residual Choline peaks!');
-        %         disp('***NOTE If you are using the Siemens MEGA_PRESS WIP (WIP529), then you will');
-        %         disp('have to add about 180 degrees of phase to the subspectrum!***');
-        %         disp('*************************************************************');
-        %         fprintf('\n');
-        %         phshft1=input('Input Desired Phase Shift (Degrees) for first spectrum: ');
-        %         frqshft1=input('Input Desired Frequncy Shift (Hz) for first spectrum: ');
-        %         out=op_freqshiftSubspec(op_addphaseSubspec(out_ph,phshft1),frqshft1);
-        %         close all;
-    case 0
-        out=out_ph;
-    otherwise
-        error('ERROR: alignSS value not valid! ');
-end
+
 %aligned_spec = out;
 %Make fully processed data;
 diffSpec=op_combinesubspecs(out,'diff');

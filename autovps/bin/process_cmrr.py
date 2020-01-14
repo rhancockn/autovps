@@ -13,8 +13,10 @@ def main():
                         help="Output prefix")
     parser.add_argument('--t1', type=str, required=False,
                         help="Path to co-registered T1 NIFTI (saves VOI mask)")
+    parser.add_argument('--water', type=str, required=False,
+                        help="Path to DICOM directory of unsupressed water data. Will be used for correction.")
     parser.add_argument('--load', dest='load', action='store_true',
-                        help="Load FID data (required for analysis)")
+                        help="Load FID data from DICOM (required for analysis).")
     parser.add_argument('--no-load', dest='load', action='store_false',
                         help="Do not load FID data")
     parser.add_argument('--fida', dest='fida', action='store_true',
@@ -25,6 +27,8 @@ def main():
                         help="Run Tarquin fit")
     parser.add_argument('--no-tarquin', dest='tarquin', action='store_false',
                         help="Do not run Tarquin fitting")
+    parser.add_argument('--no-concat', dest='concat', action='store_false',
+                        help="Do not concatenate runs before preprocessing")
 
     parser.set_defaults(load=True)
     parser.set_defaults(fida=True)
@@ -39,6 +43,7 @@ def main():
 
     # Parse the DICOMs
     runs = []
+    fida_names = []
     for run,fname in enumerate(args.dicom):
         print('Reading metadata from %s...\n' % fname)
         dcm = siemens.Siemens(fname)
@@ -64,6 +69,7 @@ def main():
             # Save to FID-A .mat
             fida_fname = '%s_run-%02d_fida.mat' % (args.prefix, run+1)
             svs.save_fida(fida_fname)
+            fida_names.append(fida_fname)
 
             # TODO: save NIFTI, LCM
 
@@ -103,6 +109,15 @@ def main():
 
     # TODO: Mark STEAM and sLASER
     if args.fida:
+        water_arg = '[]'
+        # Load water
+        if args.water is not None:
+            dcm_w = siemens.Siemens(args.water)
+            svs_w = dcm_w.get_svsdata()
+            fida_w_fname = '%s_water.mat' % args.prefix
+            svs_w.save_fida(fida_w_fname)
+            water_arg = f"'{fida_w_fname}'"
+
         print('Preprocessing using FID-A...')
 
         import subprocess
@@ -117,7 +132,7 @@ def main():
             p = Popen(['caffeinate', '-u'])
 
         if svs.sequence_type == 'PRESS':
-            cmd = "preproc_press('%s_report', [], '%s'); quit" % (args.prefix, fida_fname)
+            cmd = "preproc_press('%s_report', %s, '%s'); quit" % (args.prefix, water_arg, fida_fname)
             subprocess.run(['matlab', '-nodesktop', '-r', cmd])
             if args.tarquin:
                 print('Processing PRESS spectra using Tarquin')
@@ -135,7 +150,16 @@ def main():
                 subprocess.run(cmd, shell=True)
 
         if svs.sequence_type == 'MEGAPRESS':
-            cmd = "preproc_megapress('%s_report', [], '%s'); quit" % (args.prefix, fida_fname)
+            
+            if not args.concat:
+                # preprocess and then align each run separately
+                cmd = "preproc_multi_megapress('%s_report', %s, '%s'); quit" % (args.prefix, water_arg,  "','".join(fida_names))   
+                print('Preprocessing each run')
+            else:
+                # preprocess the merged data         
+                cmd = "preproc_megapress('%s_report', %s, '%s'); quit" % (args.prefix, water_arg, fida_fname)
+                print('Preprocessing merged data')
+
             subprocess.run(['matlab', '-nodesktop', '-r', cmd])
 
             if args.tarquin:
@@ -149,6 +173,20 @@ def main():
                         --output_pdf %s_report/tarquin.pdf \
                         --output_image %s_report/tarquin_img.pdf \
                         --ext_pdf true --output_xml %s_report/tarquin.xml --int_basis megapress_gaba \
+                        --svs_only true --stack_pdf true --te1 .014""" % (args.prefix, svs.sw, svs.larmor, svs.te, args.prefix, args.prefix, args.prefix, args.prefix, args.prefix)
+                print(cmd)
+                subprocess.run(cmd, shell=True)
+
+                print('Processing MEGA-PRESS off spectra using Tarquin')
+                cmd = """tarquin --input %s_report/spectra_jmrui_off_ave.txt --format jmrui_txt \
+                        --lipid_filter true --auto_phase true --auto_ref true \
+                        --crlb_optim false --ref_signals 1h_naa --fs %d \
+                        --ft %d --echo %f --pul_seq press \
+                        --output_txt %s_report/tarquin_off.txt \
+                        --output_csv %s_report/tarquin_off.csv \
+                        --output_pdf %s_report/tarquin_off.pdf \
+                        --output_image %s_report/tarquin_off_img.pdf \
+                        --ext_pdf true --output_xml %s_report/tarquin_off.xml --int_basis 1h_brain \
                         --svs_only true --stack_pdf true --te1 .014""" % (args.prefix, svs.sw, svs.larmor, svs.te, args.prefix, args.prefix, args.prefix, args.prefix, args.prefix)
                 print(cmd)
                 subprocess.run(cmd, shell=True)
