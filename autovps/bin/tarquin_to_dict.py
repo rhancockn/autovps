@@ -73,7 +73,7 @@ def tarquin_to_dict(fname):
     crlb_dict = _df_to_dict(t, prefix='CRLB', d={})
     for crlb_metab, crlb_au in crlb_dict.items():
         if 'CRLB_' in crlb_metab:
-            metab = crlb_metab.split('_')[1]
+            metab = '_'.join(crlb_metab.split('_')[1::])
             try:
                 t_dict['CRLBPCT_' + metab] = crlb_au / t_dict[metab] * 100.0
             except ZeroDivisionError as e:
