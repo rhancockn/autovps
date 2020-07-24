@@ -10,8 +10,11 @@ ssh -t auto_voxel@psypacs.psy.uconn.edu "source /usr/local/anaconda3/bin/activat
 scp -r auto_voxel@psypacs.psy.uconn.edu:/tmp/${outdir} .
 open ./${outdir}/vois_rendered.png
 cd ./${outdir}
-for f in voi_*.txt; do
-  cat $f | lpr -o PageSize=w150h252 -o PrintQuality=Text -o ContinuousPaper=1 -o PaperDimension=w150h252 -o landscape
-done
+cat voi_*.txt > coordinates.txt
+
+cat coordinates.txt | lpr
+cat coordinates.txt
+
 
 ssh -t auto_voxel@psypacs.psy.uconn.edu "rm -rf /tmp/${outdir}"
+

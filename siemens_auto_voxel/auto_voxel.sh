@@ -33,6 +33,7 @@ for voi in ${AUTOVOXELDIR}/voxels/${VOXEL}/*.mat; do
   echo "======== $voi_name ========" > ${tdir}/voi_${voi_name}.txt
   $AUTOVOXELDIR/scripts/siemens_online_voxel.py ${tdir}/t1.nii $voi ${tdir}/t1_brain_mni.mat ${tdir}/voi_${voi_name} >> ${tdir}/voi_${voi_name}.txt
   echo "================" >> ${tdir}/voi_${voi_name}.txt
+#  echo ""
 
 done
 
@@ -45,3 +46,5 @@ cat ${tdir}/voi_*.txt
 
 echo $tdir
 #rm -rf $tdir
+
+
