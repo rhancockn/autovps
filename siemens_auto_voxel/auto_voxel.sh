@@ -25,7 +25,7 @@ echo "Skull strip..."
 runROBEX.sh ${tdir}/t1.nii ${tdir}/t1_brain.nii
 
 echo "Normalization...."
-flirt -in ${tdir}/t1_brain -ref ${FSLDIR}/data/standard/MNI152_T1_2mm_brain -out ${tdir}/t1_brain_mni -omat ${tdir}/t1_brain_mni.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 6  -interp trilinear
+flirt -in ${tdir}/t1_brain -ref ${FSLDIR}/data/standard/MNI152_T1_2mm_brain -out ${tdir}/t1_brain_mni -omat ${tdir}/t1_brain_mni.mat -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 9  -interp trilinear
 
 for voi in ${AUTOVOXELDIR}/voxels/${VOXEL}/*.mat; do
   voi_name=`basename $voi`

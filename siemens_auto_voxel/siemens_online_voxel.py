@@ -45,7 +45,7 @@ def position_string(pos):
 # load the MNI template
 FSLDIR = os.getenv('FSLDIR', '/usr/local/fsl')
 mni_nifti = nib.load(os.path.join(FSLDIR, 'data/standard/MNI152_T1_1mm.nii.gz'))
-mni_aff = mni_nifti.get_qform()
+mni_aff = Transform(mni_nifti.get_qform())
 
 # load T1
 t1_nifti = nib.load(args.t1_nifti)
@@ -57,15 +57,14 @@ native2mni = np.loadtxt(args.native2mni)
 
 # load the template voxel spec, in mm
 mrs_aff_orig = np.loadtxt(args.svs_transform)
-
-# change to voxel coordinates
-mrs_aff_vox = np.dot(np.linalg.pinv(mni_aff), mrs_aff_orig)
-
+mrs_mm_tform = Transform(mrs_aff_orig)
 # get scaling factor of native2mni transform and scale the voxel to preserve size
-native2mni_dims = [np.sqrt(np.dot(native2mni[:, i].T.tolist(), native2mni[:, i].tolist())) for i in range(3)]
-# scale MRS voxel
-S_native2mni = np.linalg.pinv(np.diag([native2mni_dims[0], native2mni_dims[1], native2mni_dims[2], 1]))
-mrs_aff_vox = np.dot(S_native2mni, mrs_aff_vox)
+# this is mm, so do before voxel conversion
+
+mrs_mm_tform.scale(Transform(native2mni).get_scale())
+# change to voxel coordinates
+#mrs_aff_vox = np.dot(np.linalg.pinv(mni_aff), t_mrs_aff_orig.get_matrix())
+mrs_aff_vox = mni_aff.get_inverse() * mrs_mm_tform
 
 
 ## Do the transform
@@ -74,7 +73,7 @@ mrs_aff_vox = np.dot(S_native2mni, mrs_aff_vox)
 
 # flip matrix for reference (T1)
 Wref = np.eye(4)
-Wref[0,0]=-1
+Wref[0,0]=-1 #TODO: make Transform subscriptable
 Wref[0,3]=t1_nifti.get_shape()[0]-1
 
 #scale matrix for reference (T1)
@@ -95,7 +94,7 @@ composed_affine = np.dot(composed_affine, Sin)
 composed_affine = np.dot(composed_affine, Win)
 
 #the template voxel in T1 space (vox coordinates)
-composed_affine = np.dot(composed_affine, mrs_aff_vox)
+composed_affine = np.dot(composed_affine, mrs_aff_vox.get_matrix())
 #print(composed_affine)
 #template voxel in mm (scanner) coordinates
 composed_affine_mm=np.array(np.dot(t1_aff, composed_affine))
@@ -104,7 +103,9 @@ vox_tform = Transform(composed_affine_mm)
 
 ori = vox_tform.siemens_orientation()
 pos = vox_tform.get_position()
-vox_size = [np.sqrt(np.dot(composed_affine_mm[:, i].T.tolist(), composed_affine_mm[:, i].tolist())) for i in range(3)]
+# vox_size = [np.sqrt(np.dot(composed_affine_mm[:, i].T.tolist(), composed_affine_mm[:, i].tolist())) for i in range(3)]
+# use the original affine to avoid rounding errors
+vox_size = [np.sqrt(np.dot(mrs_aff_orig[:, i].T.tolist(), mrs_aff_orig[:, i].tolist())) for i in range(3)]
 
 ip_rot = -1.0*float(ori[1])
 
@@ -126,7 +127,7 @@ mrs_corners = [[-0.5, -0.5, -0.5, 1], #0
 
 
 #don't round off here
-t1_corners = np.array([(np.dot(composed_affine, c)) for c in mrs_corners])
+t1_corners = np.array([(np.dot(composed_affine, c)) for c in mrs_corners]).squeeze()
 
 # resample to match voxel grid
 #for i in range(3):
