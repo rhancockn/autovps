@@ -1,6 +1,5 @@
-numpy
-pydicom
-nibabel
-scipy
-pandas
-argparse
+numpy==1.14.0
+pydicom==1.0.2
+nibabel==2.2.1
+scipy==1.0.0
+pandas==0.22.0
