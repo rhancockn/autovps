@@ -1,6 +1,6 @@
 import numpy as np
 import six  # for 2/3 compatibility
-from pytest import approx
+from pytest import approx, warns
 
 import autovps.dataset.siemens as siemens
 from autovps.dataset import svsdata
@@ -28,10 +28,8 @@ def test_axis():
 
 
 def test_nifti():
-    siemens_data = siemens.Siemens('tests/data/siemens/eja_svs_press_combined_noave')
-    data = siemens_data.get_svsdata()
-    data.save_nifti('test.nii')
-
-
-
-
+    with warns(UserWarning, match='Assuming channels are combined'):
+        siemens_data = siemens.Siemens(
+            'tests/data/siemens/eja_svs_press_combined_noave')
+        data = siemens_data.get_svsdata()
+        data.save_nifti('test.nii')

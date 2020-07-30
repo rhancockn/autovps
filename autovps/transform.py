@@ -4,10 +4,10 @@ import numpy as np
 class Transform(object):
     """Transform matrix class
     """
-    tform = np.matrix(np.eye(4))
+    tform = np.eye(4)
 
     def __init__(self, tform):
-        self.tform = np.matrix(tform)
+        self.tform = np.asarray(tform)
 
     def get_matrix(self):
         return(self.tform)
@@ -20,7 +20,7 @@ class Transform(object):
         """
 
         theta = np.radians(theta)
-        R = np.matrix([[1, 0, 0, 0],
+        R = np.asarray([[1, 0, 0, 0],
                         [0, np.cos(theta), -np.sin(theta), 0],
                         [0, np.sin(theta), np.cos(theta), 0],
                         [0, 0, 0, 1]])
@@ -31,7 +31,7 @@ class Transform(object):
         """ Apply a rotation of theta degrees around the y axis
         """
         theta = np.radians(theta)
-        R = np.matrix([[np.cos(theta), 0, np.sin(theta), 0],
+        R = np.asarray([[np.cos(theta), 0, np.sin(theta), 0],
                         [0, 1, 0, 0],
                         [-np.sin(theta), 0, np.cos(theta), 0],
                         [0, 0, 0, 1]] )
@@ -42,7 +42,7 @@ class Transform(object):
         """ Apply a rotation of theta degrees around the z axis
         """
         theta = np.radians(theta)
-        R = np.matrix([[np.cos(theta), -np.sin(theta), 0, 0],
+        R = np.asarray([[np.cos(theta), -np.sin(theta), 0, 0],
                         [np.sin(theta), np.cos(theta), 0, 0],
                         [0, 0, 1, 0],
                         [0, 0, 0, 1]])
@@ -73,7 +73,7 @@ class Transform(object):
         """Right multiply the current transform by tform
 
         Args:
-            tform (:obj:`numpy.matrix`): a 4x4 transform to apply
+            tform (:obj:`numpy.ndarray`): a 4x4 transform to apply
 
         """
 

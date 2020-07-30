@@ -1,5 +1,5 @@
-numpy==1.14.0
-pydicom==1.0.2
-nibabel==2.2.1
-scipy==1.0.0
-pandas==0.22.0
+numpy==1.19.1
+pydicom==2.0.0
+nibabel==3.1.1
+scipy==1.5.2
+pandas==1.1.0
