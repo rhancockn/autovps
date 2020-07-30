@@ -1,5 +1,4 @@
 import numpy as np
-import six  # for 2/3 compatibility
 from pytest import approx, warns
 
 import autovps.dataset.siemens as siemens

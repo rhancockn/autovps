@@ -1,6 +1,5 @@
 import struct
 import numpy as np
-import six  # for 2/3 compatibility
 import json
 import nibabel.nicom.dicomwrappers as dcmwrapper
 from pytest import approx
@@ -29,7 +28,7 @@ def test_orientations():
                                     '11': 0.0, '12': 0.0, '13': 0.0, '14': 0.0,
                                     '15': 0.0, '16': 0.0, '17': 0.0, '18': 20.0,
                                     '19': 20.0, '20': 20.0, '21': 20.0}
-    for idx, ori in six.iteritems(siemens_orientations):
+    for idx, ori in siemens_orientations.items():
         data = siemens.Siemens('tests/data/siemens/%s' % idx)
         data.calculate_transform()
         calc_ori = data.qform.siemens_orientation()
@@ -43,7 +42,7 @@ def test_orientations():
             assert abs(size[i]-real_size[i]) < DIM_TOL
             assert abs(position[i]) < DIM_TOL
 
-        #in plane rotation
+        # in plane rotation
         assert approx(np.degrees(data.meta['VoiInPlaneRotation'])) \
             == siemens_inplane_orientations[idx]
 
@@ -70,7 +69,6 @@ def test_read_single():
     assert (data_file.data == data_dir.data).all()
 
 
-
 def test_read_uncombined():
     """Test reading a directory of dicoms
     """
@@ -83,7 +81,6 @@ def test_read_uncombined():
             assert data.data[i, j, 0, 0, -1] != 0
 
 
-
 def test_read_unaveraged():
     """Test reading a directory of dicoms
     """
@@ -94,6 +91,7 @@ def test_read_unaveraged():
     for i in range(data.data.shape[0]):
         for j in range(data.data.shape[1]):
             assert data.data[i, j, 0, 0, -1] != 0
+
 
 def test_sidecar():
     """Test creating a BIDS sidecar
