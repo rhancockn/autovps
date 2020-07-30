@@ -73,8 +73,9 @@ mrs_aff_vox = mni_aff.get_inverse() * mrs_mm_tform
 
 # flip matrix for reference (T1)
 Wref = np.eye(4)
-Wref[0,0]=-1 #TODO: make Transform subscriptable
-Wref[0,3]=t1_nifti.get_shape()[0]-1
+if np.linalg.det(t1_aff) > 0:
+    Wref[0,0]=-1 #TODO: make Transform subscriptable
+    Wref[0,3]=t1_nifti.get_shape()[0]-1
 
 #scale matrix for reference (T1)
 t1_dims = [np.sqrt(np.dot(t1_aff[:, i].T.tolist(), t1_aff[:, i].tolist())) for i in range(3)]
@@ -85,8 +86,8 @@ Sin = np.eye(4)
 
 # flip matrix for input (MNI)
 Win = np.eye(4)
-#Win[0,3]=mni_nifti.get_shape()[0]-1
-#Win[0,0]=-1
+Win[0,0]=-1
+Win[0,3]=mni_nifti.get_shape()[0]-1
 
 composed_affine = np.dot(Wref, np.linalg.pinv(Sref))
 composed_affine = np.dot(composed_affine, np.linalg.pinv(native2mni))
