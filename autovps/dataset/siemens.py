@@ -30,6 +30,7 @@ class Siemens(object):
     path = None
     meta = {}
     data = None
+    files = None
 
     def __init__(self, path):
         """Initialize a Siemens object from a DICOM file or directory.
@@ -48,7 +49,11 @@ class Siemens(object):
             files = os.listdir(self.path)
             # exclude any non dicoms
             files = [f for f in files if (os.path.isfile(os.path.join(self.path, f)) and f.endswith(('.DCM', '.dcm', '.ima', '.IMA')) and not f.startswith('.'))]
-            files = sorted(files)
+            if len(files) == 0:
+                raise FileNotFoundError('No DICOM files found')
+            
+            self.files = sorted(files)
+
             dcmfile = os.path.join(self.path, files[0])
 
             # a single file, change the path
@@ -179,18 +184,11 @@ class Siemens(object):
 
             channels = []
 
-            files = os.listdir(self.path)
-            # exclude any non dicoms
-            files = [f for f in files
-                     if (os.path.isfile(os.path.join(self.path, f))
-                     and f.endswith(('.DCM', '.dcm')))]
-            files = sorted(files)
-
             # find the instance number of the last dicom to calculate data size
             # this assumes different interleaved acquisitions have the same
             # (0020, 0012) Acquisition Number
             # true for eja sequences
-            lastdcmfile = os.path.join(self.path, files[-1])
+            lastdcmfile = os.path.join(self.path, self.files[-1])
             lastdcm = dcmwrapper.wrapper_from_file(lastdcmfile)
             self.dcm_data = lastdcm.dcm_data
             lastinstance = int(lastdcm.get((0x0020, 0x0013)).value)
@@ -216,9 +214,9 @@ class Siemens(object):
 
             is_combined = False
             # TODO: handle channel combined data
-            if len(files) != (n_reps*(n_channels + 1)):
+            if len(self.files) != (n_reps*(n_channels + 1)):
                 # not enough files for uncombined data
-                if len(files) == lastinstance:
+                if len(self.files) == lastinstance:
                     warnings.warn('Assuming channels are combined')
                     n_reps = lastinstance
                     n_channels = 1
@@ -230,8 +228,8 @@ class Siemens(object):
 
             data = np.zeros((n_channels, n_reps, 1, 1, int(csareader.get_scalar(csa_image, 'DataPointColumns'))), dtype=complex)
 
-            for fi in range(len(files)):
-                dcmfile = os.path.join(self.path, files[fi])
+            for fi in range(len(self.files)):
+                dcmfile = os.path.join(self.path, self.files[fi])
                 dcm = dcmwrapper.wrapper_from_file(dcmfile)
                 csa = csareader.get_csa_header(dcm.dcm_data)
                 fid = np.array(_read_fid(dcm), ndmin=5)
